@@ -1,7 +1,7 @@
 Name:       capi-media-tool
 Summary:    A Core API media tool library in Tizen Native API
 Version:    0.1.1
-Release:    0
+Release:    1
 Group:      Multimedia/API
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
@@ -19,14 +19,18 @@ Requires(postun): /sbin/ldconfig
 %description
 A Core API media tool library in Tizen Native API
 
+
 %package devel
 Summary:  A Core API media tool library in Tizen Native API (Development)
 Group:    Multimedia/API
 Requires: %{name} = %{version}-%{release}
 Requires: pkgconfig(libtbm)
 
+
 %description devel
 %devel_desc
+
+
 %prep
 %setup -q
 
@@ -38,23 +42,22 @@ export CXXFLAGS="$CXXFLAGS -DTIZEN_DEBUG_ENABLE"
 export FFLAGS="$FFLAGS -DTIZEN_DEBUG_ENABLE"
 %endif
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
-cmake . -DCMAKE_INSTALL_PREFIX=/usr -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
-
-
+%cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix} -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
 make %{?jobs:-j%jobs}
+
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/usr/share/license
-mkdir -p %{buildroot}/usr/bin
+mkdir -p %{buildroot}%{_datadir}/license
 mkdir -p %{buildroot}/opt/usr/devel
 cp test/media_packet_test %{buildroot}/opt/usr/devel
-cp LICENSE.APLv2 %{buildroot}/usr/share/license/%{name}
-
+cp LICENSE.APLv2 %{buildroot}%{_datadir}/license/%{name}
 %make_install
+
 
 %post
 /sbin/ldconfig
+
 
 %postun -p /sbin/ldconfig
 
@@ -66,9 +69,9 @@ cp LICENSE.APLv2 %{buildroot}/usr/share/license/%{name}
 /opt/usr/devel/*
 #%{_bindir}/*
 
+
 %files devel
 %{_includedir}/media/*.h
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/libcapi-media-tool.so
-
 
