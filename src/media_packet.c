@@ -31,15 +31,28 @@ static int _pkt_alloc_buffer(media_packet_s* pkt);
 static uint64_t _pkt_calculate_video_buffer_size(media_packet_s* pkt);
 static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s* pkt);
 static uint32_t _convert_to_tbm_surface_format(media_format_mimetype_e format_type);
+static void* _aligned_malloc_normal_buffer_type (uint64_t size, int alignment);
+static void _aligned_free_normal_buffer_type (void* buffer_ptr);
+
 
 int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet)
 {
-    media_packet_s* handle;
+    media_packet_s* handle = NULL;
     int ret = MEDIA_PACKET_ERROR_NONE;
 
     MEDIA_PACKET_INSTANCE_CHECK(fmt);
     MEDIA_PACKET_NULL_ARG_CHECK(packet);
-    /* TODO : need more validation on fmt */
+    if (MEDIA_FORMAT_GET_REFCOUNT(fmt) < 1)
+    {
+        LOGE("The media format handle is corrupted or Not set media info");
+        return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
+    }
+
+    if (!MEDIA_FORMAT_IS_VIDEO(fmt) && !MEDIA_FORMAT_IS_AUDIO(fmt))
+    {
+        LOGE("The media format handle is not specified. set video info or audio info...");
+        return MEDIA_PACKET_ERROR_INVALID_OPERATION;
+    }
 
     handle = (media_packet_s*)malloc(sizeof(media_packet_s));
     if (handle != NULL)
@@ -47,7 +60,8 @@ int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, 
     else
     {
         LOGE("[%s] MEDIA_PACKET_ERROR_OUT_OF_MEMORY(0x%08x)" ,__FUNCTION__, MEDIA_PACKET_ERROR_OUT_OF_MEMORY);
-        return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
+        ret = MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
+        goto fail;
     }
 
     /* TODO : need to consider to give application to select buffer type(tbm or heap) */
@@ -71,7 +85,7 @@ int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, 
     int err = _pkt_alloc_buffer(handle);
     if (err != MEDIA_PACKET_ERROR_NONE)
     {
-        LOGE("[%s] MEDIA_PACKET_ERROR_OUT_OF_MEMORY(0x%08x)", __FUNCTION__, MEDIA_PACKET_ERROR_OUT_OF_MEMORY);
+        LOGE("[%s] failed _pkt_alloc_buffer(), err = (0x%08x)", __FUNCTION__, err);
         ret = err;
         goto fail;
     }
@@ -105,11 +119,22 @@ fail:
 
 int media_packet_create(media_format_h fmt, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet)
 {
-    media_packet_s* handle;
+    media_packet_s* handle = NULL;
     int ret = MEDIA_PACKET_ERROR_NONE;
 
     MEDIA_PACKET_INSTANCE_CHECK(fmt);
     MEDIA_PACKET_NULL_ARG_CHECK(packet);
+    if (MEDIA_FORMAT_GET_REFCOUNT(fmt) < 1)
+    {
+        LOGE("The media format handle is corrupted or Not set media info");
+        return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
+    }
+
+    if (!MEDIA_FORMAT_IS_VIDEO(fmt) && !MEDIA_FORMAT_IS_AUDIO(fmt))
+    {
+        LOGE("The media format handle is not specified. set video info or audio info...");
+        return MEDIA_PACKET_ERROR_INVALID_OPERATION;
+    }
     /* TODO : need more validation on fmt */
 
     handle = (media_packet_s*)malloc(sizeof(media_packet_s));
@@ -260,7 +285,8 @@ int _pkt_alloc_buffer(media_packet_s* pkt)
         if (MEDIA_FORMAT_IS_VIDEO(pkt->format))
         {
             buffersize = _pkt_calculate_video_buffer_size(pkt);
-            pkt->data = (void*)malloc(buffersize);
+            // 16bytes aligned malloc
+            pkt->data = _aligned_malloc_normal_buffer_type(buffersize, 16);
             if (!pkt->data)
             {
                 return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
@@ -331,9 +357,11 @@ int _pkt_alloc_buffer(media_packet_s* pkt)
             {
                 pkt->data = surface_info.planes[0].ptr;
                 pkt->size = (uint64_t)surface_info.size;
+                LOGD("tbm_surface_created, pkt->size = %llu\n", pkt->size);
             }
             else
             {
+                LOGE("tbm_surface_get_info() is failed.. err = 0x%08x \n", err);
                 tbm_surface_destroy((tbm_surface_h)pkt->surface_data);
                 return MEDIA_PACKET_ERROR_INVALID_OPERATION;
             }
@@ -349,15 +377,14 @@ int _pkt_alloc_buffer(media_packet_s* pkt)
 }
 
 /* TODO : contact Kim Young Hun to make below api as a common */
-static uint64_t _pkt_calculate_video_buffer_size(media_packet_s* pkt)
-{
 /* TODO : rename below macro or make it able to use original from mm_transform */
-#define _ROUND_UP_4(num) (((num)+3)&~3)
+#define _ROUND_UP_16(num) (((num)+15)&~15)
 #define _GEN_MASK(x) ((1<<(x))-1)
 #define _ROUND_UP_X(v,x) (((v) + _GEN_MASK(x)) & ~_GEN_MASK(x))
 #define _DIV_ROUND_UP_X(v,x) (((v) + _GEN_MASK(x)) >> (x))
 #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
-
+static uint64_t _pkt_calculate_video_buffer_size(media_packet_s* pkt)
+{
     unsigned char x_chroma_shift = 0;
     unsigned char y_chroma_shift = 0;
     int size, w2, h2, size2;
@@ -376,45 +403,40 @@ static uint64_t _pkt_calculate_video_buffer_size(media_packet_s* pkt)
     {
 
         case MEDIA_FORMAT_I420:
-        //case MM_UTIL_IMG_FMT_YUV420:
             x_chroma_shift = 1;
             y_chroma_shift = 1;
-            stride = _ROUND_UP_4 (width);
+            stride = _ROUND_UP_16 (width);
             h2 = _ROUND_UP_X (height, x_chroma_shift);
             size = stride * h2;
             w2 = _DIV_ROUND_UP_X (width, x_chroma_shift);
-            stride2 = _ROUND_UP_4 (w2);
+            stride2 = _ROUND_UP_16 (w2);
             h2 = _DIV_ROUND_UP_X (height, y_chroma_shift);
             size2 = stride2 * h2;
             buffersize = size + 2 * size2;
             break;
 
-        //case MM_UTIL_IMG_FMT_YUV422:
         case MEDIA_FORMAT_YUYV:
         case MEDIA_FORMAT_UYVY:
         case MEDIA_FORMAT_NV16:
-        //case MM_UTIL_IMG_FMT_NV61:
-            stride = _ROUND_UP_4 (width * 2);
+            stride = _ROUND_UP_16 (width * 2);
             size = stride * height;
             buffersize = size;
             break;
 
         case MEDIA_FORMAT_RGB565:
-            stride = _ROUND_UP_4 (width * 2);
+            stride = _ROUND_UP_16 (width * 2);
             size = stride * height;
             buffersize = size;
             break;
 
         case MEDIA_FORMAT_RGB888:
-            stride = _ROUND_UP_4 (width * 3);
+            stride = _ROUND_UP_16 (width * 3);
             size = stride * height;
             buffersize = size;
             break;
 
         case MEDIA_FORMAT_ARGB:
-        //case MM_UTIL_IMG_FMT_BGRA8888:
         case MEDIA_FORMAT_RGBA:
-        //case MM_UTIL_IMG_FMT_BGRX8888:
             stride = width * 4;
             size = stride * height;
             buffersize = size;
@@ -437,11 +459,11 @@ static uint64_t _pkt_calculate_video_buffer_size(media_packet_s* pkt)
         case MEDIA_FORMAT_MPEG4_ASP:
             x_chroma_shift = 1;
             y_chroma_shift = 1;
-            stride = _ROUND_UP_4 (width);
+            stride = _ROUND_UP_16 (width);
             h2 = _ROUND_UP_X (height, y_chroma_shift);
             size = stride * h2;
             w2 = 2 * _DIV_ROUND_UP_X (width, x_chroma_shift);
-            stride2 = _ROUND_UP_4 (w2);
+            stride2 = _ROUND_UP_16 (w2);
             h2 = _DIV_ROUND_UP_X (height, y_chroma_shift);
             size2 = stride2 * h2;
             buffersize = size + size2;
@@ -457,13 +479,22 @@ static uint64_t _pkt_calculate_video_buffer_size(media_packet_s* pkt)
 }
 
 /* TODO : written by joungkook seo for audio */
+/* TODO : rename below macro or make it able to use original from mm_transform */
+#define PCM_MAX_FRM_SIZE        (2048)
+#define PCM_MIN_FRM_SIZE          (1024)
+#define AAC_MAX_SAMPLE_SIZE   (1024)
+#define MP3_MAX_SAMPLE_SIZE   (1152)
+#define AMR_MAX_SAMPLE_SIZE    (320)       /* AMR-NB(160), WB (320) */
+#define OGG_MAX_SAMPLE_SIZE   (2048)
+
+#define MPEG_MAX_FRM_SIZE      (6144/4)      /* 1536 */
+#define AMR_MAX_FRM_SIZE             (96)       /* AMR-NB(32), WB (96) */
+#define OGG_MAX_FRM_SIZE   (2048)
+
+#define MPEG_MIN_NCH                  (2)
+
 static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s* pkt)
 {
-/* TODO : rename below macro or make it able to use original from mm_transform */
-#define PCM_MIN_FRM_SIZE         (1024)
-#define AAC_MIN_FRM_SIZE         (1024)
-#define AAC_MIN_NCH                    (2)
-
     int channel = 0;
     int bit = 0;
     uint64_t buffersize = 0;
@@ -473,14 +504,22 @@ static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s* pkt)
         bit = pkt->format->detail.audio.bit;
     }
 
-    /* TODO : need to check type mapping again with mm_transform */
     switch (pkt->format->mimetype)
     {
         case MEDIA_FORMAT_PCM:
-            buffersize = (PCM_MIN_FRM_SIZE * channel) * (uint64_t)(bit /8);
+            buffersize = (PCM_MAX_FRM_SIZE * channel) * (uint64_t)(bit /8);
             break;
-        case MEDIA_FORMAT_AAC:
-            buffersize = (AAC_MIN_FRM_SIZE * AAC_MIN_NCH) * (uint64_t)(2);      /* 2 = (16bit/8)*/
+        case MEDIA_FORMAT_AAC_LC:
+        case MEDIA_FORMAT_AAC_HE:
+        case MEDIA_FORMAT_AAC_HE_PS:
+        case MEDIA_FORMAT_MP3:
+            buffersize = (MPEG_MAX_FRM_SIZE * MPEG_MIN_NCH) * (uint64_t)(2);      /* 2 = (16bit/8)*/
+        /* TODO : extenstion format */
+        case MEDIA_FORMAT_AMR_NB:
+        case MEDIA_FORMAT_AMR_WB:
+            buffersize = (AMR_MAX_FRM_SIZE * MPEG_MIN_NCH) * (uint64_t)(2);      /* 2 = (16bit/8)*/
+        case MEDIA_FORMAT_VORBIS:
+            buffersize = (OGG_MAX_FRM_SIZE * MPEG_MIN_NCH) * (uint64_t)(2);      /* 2 = (16bit/8)*/
             break;
         default:
             LOGE("Not supported format\n");
@@ -503,7 +542,11 @@ int media_packet_create_from_tbm_surface(media_format_h fmt, tbm_surface_h surfa
     MEDIA_PACKET_INSTANCE_CHECK(fmt);
     MEDIA_PACKET_INSTANCE_CHECK(surface);
     MEDIA_PACKET_NULL_ARG_CHECK(packet);
-    /* TODO : need more validation on fmt */
+    if (!MEDIA_FORMAT_IS_VIDEO(fmt) && !MEDIA_FORMAT_IS_AUDIO(fmt))
+    {
+        LOGE("The media format handle is not specified. set video info or audio info...");
+        return MEDIA_PACKET_ERROR_INVALID_OPERATION;
+    }
 
     handle = (media_packet_s*)malloc( sizeof(media_packet_s));
     if (handle != NULL)
@@ -532,9 +575,83 @@ int media_packet_create_from_tbm_surface(media_format_h fmt, tbm_surface_h surfa
     }
     else
     {
+        LOGE("tbm_surface_get_info() is failed.. err =0x%08x", err);
         ret = MEDIA_PACKET_ERROR_INVALID_OPERATION;
         goto fail;
     }
+
+    /* allocated buffer */
+    handle->is_allocated = true;
+
+    /* set finalized callback and user data */
+    handle->finalizecb_func = fcb;
+    handle->userdata = fcb_data;
+
+    /* increase format reference count */
+    ret = media_format_ref((media_format_h)handle->format);
+
+    /* take handle */
+    *packet = (media_packet_h)handle;
+    LOGI("[%s] new handle : %p", __FUNCTION__, *packet);
+    return ret;
+
+fail:
+
+    if (handle)
+    {
+        free(handle);
+        handle = NULL;
+    }
+
+    *packet = NULL;
+    return ret;
+}
+
+int media_packet_create_from_external_memory(media_format_h fmt, void *mem_ptr, uint64_t size, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet)
+{
+    media_packet_s* handle;
+    int ret = MEDIA_PACKET_ERROR_NONE;
+
+    if (mem_ptr == NULL)
+        return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
+
+    if (!(size > 0))
+        return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
+
+    MEDIA_PACKET_INSTANCE_CHECK(fmt);
+    MEDIA_PACKET_NULL_ARG_CHECK(packet);
+
+    if (!MEDIA_FORMAT_IS_VIDEO(fmt) && !MEDIA_FORMAT_IS_AUDIO(fmt))
+    {
+        LOGE("The media format handle is not specified. set video info or audio info...");
+        return MEDIA_PACKET_ERROR_INVALID_OPERATION;
+    }
+
+    if (MEDIA_FORMAT_IS_RAW(fmt) && MEDIA_FORMAT_IS_VIDEO(fmt))
+    {
+        LOGE("failed!. it supports only 'MEDIA_FORMAT_ENCODED' type.");
+        return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
+    }
+
+    handle = (media_packet_s*)malloc( sizeof(media_packet_s));
+    if (handle != NULL)
+    {
+        memset(handle, 0 , sizeof(media_packet_s));
+    }
+    else
+    {
+        LOGE("[%s] MEDIA_PACKET_ERROR_OUT_OF_MEMORY(0x%08x)" ,__FUNCTION__,MEDIA_PACKET_ERROR_OUT_OF_MEMORY);
+        return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
+    }
+
+    handle->type = MEDIA_BUFFER_TYPE_EXTERNAL_MEMORY;
+
+    /* alloc handle->format */
+    handle->format = MEDIA_FORMAT_CAST(fmt);
+
+    /* set external allocated memory & external memory size */
+    handle->size = size;
+    handle->data = mem_ptr;
 
     /* allocated buffer */
     handle->is_allocated = true;
@@ -625,6 +742,7 @@ int media_packet_set_format(media_packet_h packet, media_format_h fmt)
     /* if trying to set same format,  return*/
     if (handle->format == MEDIA_FORMAT_CAST(fmt))
     {
+        LOGE("The packet handle already refers the format handle..\n");
         return MEDIA_PACKET_ERROR_INVALID_OPERATION;
     }
 
@@ -858,6 +976,21 @@ int media_packet_is_raw(media_packet_h packet, bool *is_raw)
     return ret;
 }
 
+int media_packet_get_flags(media_packet_h packet, media_buffer_flags_e *flags)
+{
+    media_packet_s* handle;
+    int ret = MEDIA_PACKET_ERROR_NONE;
+
+    MEDIA_PACKET_INSTANCE_CHECK(packet);
+    MEDIA_PACKET_NULL_ARG_CHECK(flags);
+
+    handle = (media_packet_s*) packet;
+
+    *flags = handle->flags;
+
+    return ret;
+}
+
 int media_packet_set_flags(media_packet_h packet, media_buffer_flags_e flags)
 {
     media_packet_s* handle;
@@ -961,6 +1094,236 @@ int media_packet_has_tbm_surface_buffer(media_packet_h packet, bool* has_tbm_sur
     return ret;
 }
 
+int media_packet_get_number_of_video_planes(media_packet_h packet, uint32_t* num)
+{
+    media_packet_s* handle;
+    int ret = MEDIA_PACKET_ERROR_NONE;
+    bool has_tbm;
+
+    MEDIA_PACKET_INSTANCE_CHECK(packet);
+    MEDIA_PACKET_NULL_ARG_CHECK(num);
+
+    handle = (media_packet_s*) packet;
+
+    media_packet_has_tbm_surface_buffer(packet, &has_tbm);
+
+    if (has_tbm)
+    {
+        tbm_surface_info_s surface_info;
+        int err = tbm_surface_get_info((tbm_surface_h)handle->surface_data, &surface_info);
+        if (err == TBM_SURFACE_ERROR_NONE)
+        {
+            *num = surface_info.num_planes;
+            LOGD(" surface_info the number of planes = %d\n", (int)surface_info.num_planes);
+        }
+        else
+        {
+            *num = 0;
+            LOGE("tbm_surface_get_info() is failed.. 0x%08x \n", err);
+            ret = MEDIA_PACKET_ERROR_INVALID_OPERATION;
+        }
+    }
+    else
+    {
+        *num = 0;
+        LOGE("The packet handle doesn't have tbm_surface buffer type...\n");
+        ret = MEDIA_PACKET_ERROR_INVALID_OPERATION;
+
+    }
+
+    return ret;
+}
+
+int media_packet_get_video_stride_width(media_packet_h packet, int plane_idx, int *stride_width)
+{
+    media_packet_s* handle;
+    int ret = MEDIA_PACKET_ERROR_NONE;
+    bool has_tbm;
+
+    MEDIA_PACKET_INSTANCE_CHECK(packet);
+    MEDIA_PACKET_NULL_ARG_CHECK(stride_width);
+    if (plane_idx < 0)
+    {
+        LOGE("Invalid plane_idx : %d, must not be negative number\n", plane_idx);
+        return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
+    }
+
+    handle = (media_packet_s*) packet;
+
+    media_packet_has_tbm_surface_buffer(packet, &has_tbm);
+
+    if (has_tbm)
+    {
+        tbm_surface_info_s surface_info;
+        int err = tbm_surface_get_info((tbm_surface_h)handle->surface_data, &surface_info);
+        if (err == TBM_SURFACE_ERROR_NONE)
+        {
+
+            if (surface_info.num_planes > plane_idx)
+            {
+                *stride_width = surface_info.planes[plane_idx].stride;
+            }
+            else
+            {
+                LOGE("the plane_idx is invalid, The number of planes = %lu\n", surface_info.num_planes);
+                *stride_width = 0;
+                ret = MEDIA_PACKET_ERROR_INVALID_PARAMETER;
+            }
+        }
+        else
+        {
+            *stride_width = 0;
+            LOGE("tbm_surface_get_info() is failed.. 0x%08x \n", err);
+            ret = MEDIA_PACKET_ERROR_INVALID_OPERATION;
+        }
+    }
+    else
+    {
+        LOGE("The packet handle doesn't have tbm_surface buffer type...\n");
+        *stride_width = 0;
+        ret = MEDIA_PACKET_ERROR_INVALID_OPERATION;
+    }
+
+    return ret;
+}
+
+int media_packet_get_video_stride_height(media_packet_h packet, int plane_idx, int *stride_height)
+{
+    media_packet_s* handle;
+    int ret = MEDIA_PACKET_ERROR_NONE;
+    bool has_tbm;
+
+    MEDIA_PACKET_INSTANCE_CHECK(packet);
+    MEDIA_PACKET_NULL_ARG_CHECK(stride_height);
+    if (plane_idx < 0)
+    {
+        LOGE("Invalid plane_idx : %d, must not be negative number\n", plane_idx);
+        return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
+    }
+
+
+    handle = (media_packet_s*) packet;
+
+    media_packet_has_tbm_surface_buffer(packet, &has_tbm);
+
+    if (has_tbm)
+    {
+        tbm_surface_info_s surface_info;
+        int err = tbm_surface_get_info((tbm_surface_h)handle->surface_data, &surface_info);
+        if (err == TBM_SURFACE_ERROR_NONE)
+        {
+            if (surface_info.num_planes > plane_idx)
+            {
+                *stride_height = surface_info.planes[plane_idx].size/surface_info.planes[plane_idx].stride;
+            }
+            else
+            {
+                LOGE("the plane_idx is invalid, The number of planes = %lu\n", surface_info.num_planes);
+                *stride_height = 0;
+                ret = MEDIA_PACKET_ERROR_INVALID_PARAMETER;
+            }
+        }
+        else
+        {
+            *stride_height = 0;
+            LOGE("tbm_surface_get_info() is failed.. 0x%08x \n", err);
+            ret = MEDIA_PACKET_ERROR_INVALID_OPERATION;
+        }
+    }
+    else
+    {
+        LOGE("The packet handle doesn't have tbm_surface buffer type...\n");
+        *stride_height = 0;
+        ret = MEDIA_PACKET_ERROR_INVALID_OPERATION;
+    }
+
+    return ret;
+
+}
+
+int media_packet_get_video_plane_data_ptr(media_packet_h packet, int plane_idx, void **plane_data_ptr)
+{
+    media_packet_s* handle;
+    int ret = MEDIA_PACKET_ERROR_NONE;
+    bool has_tbm;
+
+    MEDIA_PACKET_INSTANCE_CHECK(packet);
+    MEDIA_PACKET_NULL_ARG_CHECK(plane_data_ptr);
+    if (plane_idx < 0)
+    {
+        LOGE("Invalid plane_idx : %d, must not be negative number\n", plane_idx);
+        return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
+    }
+
+    handle = (media_packet_s*) packet;
+
+    media_packet_has_tbm_surface_buffer(packet, &has_tbm);
+
+    if (has_tbm)
+    {
+        tbm_surface_info_s surface_info;
+        int err = tbm_surface_get_info((tbm_surface_h)handle->surface_data, &surface_info);
+        if (err == TBM_SURFACE_ERROR_NONE)
+        {
+            if (surface_info.num_planes > plane_idx)
+            {
+                *plane_data_ptr = surface_info.planes[plane_idx].ptr;
+                LOGD("the tbm_surface_info.planes[%d].ptr = %p\n", plane_idx, surface_info.planes[plane_idx].ptr);
+            }
+            else
+            {
+                LOGE("the plane_idx is invalid, The number of planes = %lu\n", surface_info.num_planes);
+                *plane_data_ptr = NULL;
+                ret = MEDIA_PACKET_ERROR_INVALID_PARAMETER;
+            }
+        }
+        else
+        {
+            LOGE("tbm_surface_get_info() is failed.. 0x%08x \n", err);
+            *plane_data_ptr = NULL;
+            ret = MEDIA_PACKET_ERROR_INVALID_OPERATION;
+        }
+    }
+    else
+    {
+        LOGI("The packet handle doesn't have tbm_surface buffer type...\n");
+        *plane_data_ptr = NULL;
+        ret = MEDIA_PACKET_ERROR_INVALID_OPERATION;
+    }
+
+    return ret;
+}
+
+int media_packet_get_codec_data(media_packet_h packet, void** codec_data, unsigned int* codec_data_size)
+{
+    media_packet_s* handle;
+    int ret = MEDIA_PACKET_ERROR_NONE;
+
+    MEDIA_PACKET_INSTANCE_CHECK(packet);
+    MEDIA_PACKET_NULL_ARG_CHECK(codec_data);
+    MEDIA_PACKET_NULL_ARG_CHECK(codec_data_size);
+
+    handle = (media_packet_s*) packet;
+
+    LOGI("Get: codec data = %p, codec_data_size = %u\n", handle->codec_data, handle->codec_data_size);
+
+    if (handle->codec_data)
+    {
+        *codec_data_size = handle->codec_data_size;
+        *codec_data = handle->codec_data;
+    }
+    else
+    {
+        *codec_data = NULL;
+        *codec_data_size = 0;
+
+        LOGE("There is no codec data..\n");
+        ret = MEDIA_PACKET_ERROR_INVALID_OPERATION;
+    }
+
+    return ret;
+}
+
 int media_packet_destroy(media_packet_h packet)
 {
     media_packet_s* handle;
@@ -995,17 +1358,27 @@ int media_packet_destroy(media_packet_h packet)
     {
         if(handle->data)
         {
-            free(handle->data);
+            _aligned_free_normal_buffer_type(handle->data);
             handle->data = NULL;
         }
     }
-    else if (handle->type == MEDIA_BUFFER_TYPE_EXTERNAL_TBM_SURFACE)
+    else if (handle->type == MEDIA_BUFFER_TYPE_EXTERNAL_TBM_SURFACE || handle->type == MEDIA_BUFFER_TYPE_EXTERNAL_MEMORY)
     {
-        // there is nothing to do
+        // there is nothing to do, Do not free the buffer which is created by external module.
+    }
+
+    /* free codec_data if it is allocated */
+    if (handle->codec_data)
+    {
+        free(handle->codec_data);
+        handle->codec_data = NULL;
+        handle->codec_data_size = 0;
     }
 
     /* unreference media_format */
     media_format_unref(handle->format);
+
+    LOGI("The packet handle(%p) is will be destroyed..\n", handle);
 
     free(handle);
     handle = NULL;
@@ -1065,181 +1438,41 @@ static uint32_t _convert_to_tbm_surface_format(media_format_mimetype_e format_ty
 }
 
 
-#if 0
-int media_tool_create(mediatool_h *mediatool)
+static void* _aligned_malloc_normal_buffer_type (uint64_t size, int alignment)
 {
-    MediaTool_s *handle;
-    int ret;
-    handle = (MediaTool_s*)malloc(sizeof(MediaTool_s));
+    unsigned char* buffer_ptr;
+    unsigned char* temp_ptr;
 
-    if (handle != NULL)
-            memset(handle, 0, sizeof(MediaTool_s));
-    else
-            return MEDIA_TOOL_ERROR_OUT_OF_MEMORY;
+    if((temp_ptr = (void*)malloc(size + alignment)) != NULL)
+    {
+        buffer_ptr = (void*)((unsigned int)(temp_ptr + alignment - 1) & (~(unsigned int)(alignment -1)));
 
-    //TODO : make _media_tool_create function
-    //ret = _media_tool_create(&handle->mediatool_handle);
-    if(ret != MEDIA_TOOL_ERROR_NONE)
+        if(buffer_ptr == temp_ptr)
         {
-            free(handle);
-            handle = NULL;
-            return MEDIA_TOOL_ERROR_INVALID_OPERATION;
+            buffer_ptr += alignment;
         }
-    else
-        {
-            *mediatool = (mediatool_h*)handle;
-            handle->refcount = 1;
-            return MEDIA_TOOL_ERROR_NONE;
-        }
+
+        *(buffer_ptr - 1) = (unsigned int)(buffer_ptr - temp_ptr);
+        return (void*)buffer_ptr;
+    }
+
+    return NULL;
 }
 
-int media_tool_destroy(mediatool_h mediatool)
+static void _aligned_free_normal_buffer_type (void* buffer_ptr)
 {
-    MediaTool_s* handle = (MediaTool_s *) mediatool;
-    int ret;
+    unsigned char* ptr;
+    if (buffer_ptr == NULL)
+        return;
 
-    if (handle == NULL)
-        return MEDIA_TOOL_ERROR_INVALID_PARAMETER;
+    ptr = (unsigned char*)buffer_ptr;
 
-    //TODO : make _media_tool_create function
-    ret = _media_tool_destroy(handle->mediatool_handle);
-    if (ret != MEDIA_TOOL_ERROR_NONE)
-        {
-            return MEDIA_TOOL_ERROR_INVALID_OPERATION;
-        }
-    else
-        {
-            free(handle);
-            handle = NULL;
-            return MEDIA_TOOL_ERROR_NONE;
-        }
+    // *(ptr - 1) holds the offset to the real allocated block
+    // we sub that offset os we free the real pointer
+    ptr -= *(ptr - 1);
+
+    // Free the memory
+    free(ptr);
+    ptr = NULL;
 }
-
-int media_tool_is_Iframe(mediatool_h mediatool, bool *isIFrame)
-{
-    MediaTool_s *handle = (MediaTool_s *) mediatool;
-    int ret;
-    if (handle == NULL)
-        return MEDIA_TOOL_ERROR_INVALID_PARAMETER;
-
-    *isIFrame  = handle->videocodecformat->isIFrame;
-
-    return MEDIA_TOOL_ERROR_NONE;
-}
-
-int media_tool_set_buffer(mediatool_h mediatool, MediaToolBufferPrivate_s* privBuffer)
-{
-    MediaTool_s *handle = (MediaTool_s *) mediatool;
-    int ret;
-    handle->bufferpriv = (MediaToolBufferPrivate_s *)malloc(sizeof(MediaToolBufferPrivate_s));
-
-    if (handle->bufferpriv != NULL)
-        memset(handle->bufferpriv, 0, sizeof(MediaToolBufferPrivate_s));
-    else
-        return MEDIA_TOOL_ERROR_OUT_OF_MEMORY;
-
-    return MEDIA_TOOL_ERROR_NONE;
-}
-
-int media_tool_get_buffer(mediatool_h mediatool, MediaToolBufferPrivate_s** privBuffer)
-{
-    MediaTool_s *handle = (MediaTool_s *) mediatool;
-    int ret;
-    if (handle->bufferpriv == NULL)
-        return MEDIA_TOOL_ERROR_INVALID_OPERATION;
-
-    memcpy(*privBuffer, handle->bufferpriv, sizeof(handle->bufferpriv));
-
-    return MEDIA_TOOL_ERROR_NONE;
-}
-
-int media_tool_set_video_codec_format(mediatool_h mediatool, VideoCodecFormat_s* videoCodecFormat)
-{
-    MediaTool_s *handle = (MediaTool_s *) mediatool;
-    int ret;
-    handle->videocodecformat = (VideoCodecFormat_s *)malloc(sizeof(VideoCodecFormat_s));
-
-    if (handle->videocodecformat != NULL)
-        memset(handle->videocodecformat, 0, sizeof(VideoCodecFormat_s));
-    else
-        return MEDIA_TOOL_ERROR_OUT_OF_MEMORY;
-
-    return MEDIA_TOOL_ERROR_NONE;
-}
-
-int media_tool_get_video_codec_format(mediatool_h mediatool, VideoCodecFormat_s** videoCodecFormat)
-{
-    MediaTool_s *handle = (MediaTool_s *) mediatool;
-    int ret;
-    if (handle->videocodecformat == NULL)
-        return MEDIA_TOOL_ERROR_INVALID_OPERATION;
-
-    memcpy(*videoCodecFormat, handle->videocodecformat, sizeof(handle->videocodecformat));
-
-    return MEDIA_TOOL_ERROR_NONE;
-}
-
-int media_tool_set_audio_codec_format(mediatool_h mediatool, AudioCodecFormat_s* audioCodecFormat)
-{
-    MediaTool_s *handle = (MediaTool_s *) mediatool;
-    int ret;
-    handle->audiocodecformat = (AudioCodecFormat_s *)malloc(sizeof(AudioCodecFormat_s));
-
-    if (handle->audiocodecformat != NULL)
-        memset(handle->audiocodecformat, 0, sizeof(AudioCodecFormat_s));
-    else
-        return MEDIA_TOOL_ERROR_OUT_OF_MEMORY;
-
-    return MEDIA_TOOL_ERROR_NONE;
-}
-
-int media_tool_get_audio_codec_format(mediatool_h mediatool, AudioCodecFormat_s** audioCodecFormat)
-{
-    MediaTool_s *handle = (MediaTool_s *) mediatool;
-    int ret;
-    if (handle->audiocodecformat == NULL)
-        return MEDIA_TOOL_ERROR_INVALID_OPERATION;
-
-    memcpy(*audioCodecFormat, handle->audiocodecformat, sizeof(handle->audiocodecformat));
-
-    return MEDIA_TOOL_ERROR_NONE;
-}
-
-int media_tool_ref(mediatool_h mediatool)
-{
-    MediaTool_s *handle = (MediaTool_s *) mediatool;
-
-    if (handle == NULL)
-        return MEDIA_TOOL_ERROR_INVALID_PARAMETER;
-
-    if (!(handle->refcount> 0))
-        return MEDIA_TOOL_ERROR_INVALID_OPERATION;
-
-    g_atomic_int_inc (&handle->refcount);
-
-    return MEDIA_TOOL_ERROR_NONE;
-}
-
-int media_tool_unref(mediatool_h mediatool)
-{
-    MediaTool_s *handle = (MediaTool_s *) mediatool;
-
-    if (handle == NULL)
-        return MEDIA_TOOL_ERROR_INVALID_PARAMETER;
-
-    if (!(handle->refcount> 0))
-        return MEDIA_TOOL_ERROR_INVALID_OPERATION;
-
-    int zero;
-
-    zero = g_atomic_int_dec_and_test (&handle->refcount);
-    if (zero)
-        {
-            free(handle);
-            handle = NULL;
-        }
-    return MEDIA_TOOL_ERROR_NONE;
-}
-
-#endif
 
