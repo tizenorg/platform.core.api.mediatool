@@ -43,6 +43,8 @@ int media_format_create(media_format_h* fmt)
 
     *fmt = (media_format_h)fmt_handle;
 
+    LOGI("The new format handle: %p \n", *fmt);
+
     return ret;
 }
 
@@ -52,6 +54,54 @@ static void _media_format_destroy(media_format_s* fmt)
 
     free(fmt);
     fmt = NULL;
+}
+
+int media_format_get_mime_format_type(media_format_h fmt, media_format_type_e* formattype)
+{
+    int ret = MEDIA_FORMAT_ERROR_NONE;
+    MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+
+    media_format_s* fmt_handle;
+    fmt_handle = (media_format_s*)fmt;
+
+    if (!formattype)
+        return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
+
+    if (fmt_handle->mimetype & MEDIA_FORMAT_AUDIO)
+        *formattype = MEDIA_FORMAT_AUDIO;
+    else if (fmt_handle->mimetype & MEDIA_FORMAT_VIDEO)
+        *formattype = MEDIA_FORMAT_VIDEO;
+    else if (fmt_handle->mimetype & MEDIA_FORMAT_CONTAINER)
+        *formattype = MEDIA_FORMAT_CONTAINER;
+    else if (fmt_handle->mimetype & MEDIA_FORMAT_TEXT)
+        *formattype = MEDIA_FORMAT_TEXT;
+    else
+    {
+        LOGE("The format handle is not for AUDIO / VIDEO / CONTAINER / TEXT..\n");
+        return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+    }
+
+    return ret;
+}
+
+int media_format_get_container_mime(media_format_h fmt, media_format_mimetype_e* mimetype)
+{
+    int ret = MEDIA_FORMAT_ERROR_NONE;
+    MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+
+    media_format_s* fmt_handle;
+    fmt_handle = (media_format_s*)fmt;
+
+    if (!(fmt_handle->mimetype & MEDIA_FORMAT_CONTAINER))
+    {
+        LOGE("The format handle is not for MEDIA_FORMAT_CONTAINER..\n");
+        return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
+    }
+
+    if (mimetype)
+        *mimetype = fmt_handle->mimetype;
+
+    return ret;
 }
 
 int media_format_get_video_info(media_format_h fmt, media_format_mimetype_e* mimetype, int* width, int* height, int* avg_bps, int* max_bps)
@@ -64,6 +114,7 @@ int media_format_get_video_info(media_format_h fmt, media_format_mimetype_e* mim
 
     if (!(fmt_handle->mimetype & MEDIA_FORMAT_VIDEO))
     {
+        LOGE("The format handle is not for MEDIA_FORMAT_VIDEO..\n");
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
     }
 
@@ -91,14 +142,83 @@ int media_format_get_audio_info(media_format_h fmt, media_format_mimetype_e* mim
 
     if (!(fmt_handle->mimetype & MEDIA_FORMAT_AUDIO))
     {
+        LOGE("The format handle is not for MEDIA_FORMAT_AUDIO..\n");
+        return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+    }
+    if (mimetype)
+        *mimetype = fmt_handle->mimetype;
+    if (channel)
+        *channel = fmt_handle->detail.audio.channel;
+    if (samplerate)
+        *samplerate = fmt_handle->detail.audio.samplerate;
+    if (bit)
+        *bit = fmt_handle->detail.audio.bit;
+    if (avg_bps)
+        *avg_bps = fmt_handle->detail.audio.avg_bps;
+
+    return ret;
+}
+
+int media_format_get_audio_aac_type(media_format_h fmt, bool* is_adts)
+{
+    int ret = MEDIA_FORMAT_ERROR_NONE;
+    MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+
+    media_format_s* fmt_handle;
+    fmt_handle = (media_format_s*)fmt;
+
+    if (!(fmt_handle->mimetype == MEDIA_FORMAT_AAC_LC || fmt_handle->mimetype == MEDIA_FORMAT_AAC_HE || fmt_handle->mimetype == MEDIA_FORMAT_AAC_HE_PS))
+    {
+        LOGE("The format handle is not aac format..\n");
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
     }
 
-    *mimetype = fmt_handle->mimetype;
-    *channel = fmt_handle->detail.audio.channel;
-    *samplerate = fmt_handle->detail.audio.samplerate;
-    *bit = fmt_handle->detail.audio.bit;
-    *avg_bps = fmt_handle->detail.audio.avg_bps;
+    if (is_adts)
+        *is_adts = fmt_handle->detail.audio.is_adts;
+
+    return ret;
+}
+
+int media_format_get_video_frame_rate(media_format_h fmt, int* frame_rate)
+{
+    int ret = MEDIA_FORMAT_ERROR_NONE;
+    MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+
+    media_format_s* fmt_handle;
+    fmt_handle = (media_format_s*)fmt;
+
+    if (!(fmt_handle->mimetype & MEDIA_FORMAT_VIDEO))
+    {
+        LOGE("The format handle is not for MEDIA_FORMAT_VIDEO..\n");
+        return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+    }
+
+    if (frame_rate)
+        *frame_rate = fmt_handle->detail.video.frame_rate;
+
+    return ret;
+}
+
+int media_format_set_container_mime(media_format_h fmt, media_format_mimetype_e mimetype)
+{
+    int ret = MEDIA_FORMAT_ERROR_NONE;
+    MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+
+    if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
+    {
+        LOGE("The format can not be changed..\n", __FUNCTION__);
+        return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+    }
+
+    media_format_s* fmt_handle;
+    fmt_handle = (media_format_s*)fmt;
+
+    if (!(mimetype & MEDIA_FORMAT_CONTAINER))
+    {
+        return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
+    }
+
+    fmt_handle->mimetype = mimetype;
 
     return ret;
 }
@@ -110,7 +230,7 @@ int media_format_set_video_mime(media_format_h fmt, media_format_mimetype_e mime
 
     if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
     {
-        LOGE("the format can not be changed..", __FUNCTION__);
+        LOGE("The format can not be changed..\n", __FUNCTION__);
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
     }
 
@@ -134,7 +254,7 @@ int media_format_set_video_width(media_format_h fmt, int width)
 
     if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
     {
-        LOGE("the format can not be changed..", __FUNCTION__);
+        LOGE("the format can not be changed..\n", __FUNCTION__);
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
     }
 
@@ -143,6 +263,7 @@ int media_format_set_video_width(media_format_h fmt, int width)
 
     if (!(fmt_handle->mimetype & MEDIA_FORMAT_VIDEO))
     {
+        LOGE("The format handle is not for MEDIA_FORMAT_VIDEO..\n");
         return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
     }
 
@@ -158,7 +279,7 @@ int media_format_set_video_height(media_format_h fmt, int height)
 
     if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
     {
-        LOGE("the format can not be changed..", __FUNCTION__);
+        LOGE("The format can not be changed..\n", __FUNCTION__);
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
     }
 
@@ -167,6 +288,7 @@ int media_format_set_video_height(media_format_h fmt, int height)
 
     if (!(fmt_handle->mimetype & MEDIA_FORMAT_VIDEO))
     {
+        LOGE("The format handle is not for MEDIA_FORMAT_VIDEO..\n");
         return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
     }
 
@@ -182,7 +304,7 @@ int media_format_set_video_avg_bps(media_format_h fmt, int avg_bps)
 
     if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
     {
-        LOGE("the format can not be changed..", __FUNCTION__);
+        LOGE("The format can not be changed..\n", __FUNCTION__);
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
     }
 
@@ -191,6 +313,7 @@ int media_format_set_video_avg_bps(media_format_h fmt, int avg_bps)
 
     if (!(fmt_handle->mimetype & MEDIA_FORMAT_VIDEO))
     {
+        LOGE("The format handle is not for MEDIA_FORMAT_VIDEO..\n");
         return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
     }
 
@@ -206,7 +329,7 @@ int media_format_set_video_max_bps(media_format_h fmt, int max_bps)
 
     if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
     {
-        LOGE("the format can not be changed..", __FUNCTION__);
+        LOGE("The format can not be changed..\n", __FUNCTION__);
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
     }
 
@@ -215,6 +338,7 @@ int media_format_set_video_max_bps(media_format_h fmt, int max_bps)
 
     if (!(fmt_handle->mimetype & MEDIA_FORMAT_VIDEO))
     {
+        LOGE("The format handle is not for MEDIA_FORMAT_VIDEO..\n");
         return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
     }
 
@@ -223,6 +347,30 @@ int media_format_set_video_max_bps(media_format_h fmt, int max_bps)
     return ret;
 }
 
+int media_format_set_video_frame_rate(media_format_h fmt, int frame_rate)
+{
+    int ret = MEDIA_FORMAT_ERROR_NONE;
+    MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+
+    if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
+    {
+        LOGE("The format can not be changed..\n", __FUNCTION__);
+        return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+    }
+
+    media_format_s* fmt_handle;
+    fmt_handle = (media_format_s*)fmt;
+
+    if (!(fmt_handle->mimetype & MEDIA_FORMAT_VIDEO))
+    {
+        LOGE("The format handle is not for MEDIA_FORMAT_VIDEO..\n");
+        return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
+    }
+
+    fmt_handle->detail.video.frame_rate = frame_rate;
+
+    return ret;
+}
 
 int media_format_set_audio_mime(media_format_h fmt, media_format_mimetype_e mimetype)
 {
@@ -232,7 +380,7 @@ int media_format_set_audio_mime(media_format_h fmt, media_format_mimetype_e mime
 
     if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
     {
-        LOGE("the format can not be changed..", __FUNCTION__);
+        LOGE("the format can not be changed..\n", __FUNCTION__);
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
     }
 
@@ -241,6 +389,7 @@ int media_format_set_audio_mime(media_format_h fmt, media_format_mimetype_e mime
 
     if (!(mimetype & MEDIA_FORMAT_AUDIO))
     {
+        LOGE("The format handle is not for MEDIA_FORMAT_AUDIO..\n");
         return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
     }
 
@@ -257,7 +406,7 @@ int media_format_set_audio_channel(media_format_h fmt, int channel)
 
     if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
     {
-        LOGE("the format can not be changed..", __FUNCTION__);
+        LOGE("the format can not be changed..\n", __FUNCTION__);
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
     }
 
@@ -266,6 +415,7 @@ int media_format_set_audio_channel(media_format_h fmt, int channel)
 
     if (!(fmt_handle->mimetype & MEDIA_FORMAT_AUDIO))
     {
+        LOGE("The format handle is not for MEDIA_FORMAT_AUDIO..\n");
         return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
     }
 
@@ -282,7 +432,7 @@ int media_format_set_audio_samplerate(media_format_h fmt, int samplerate)
 
     if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
     {
-        LOGE("the format can not be changed..", __FUNCTION__);
+        LOGE("the format can not be changed..\n", __FUNCTION__);
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
     }
 
@@ -291,6 +441,7 @@ int media_format_set_audio_samplerate(media_format_h fmt, int samplerate)
 
     if (!(fmt_handle->mimetype & MEDIA_FORMAT_AUDIO))
     {
+        LOGE("The format handle is not for MEDIA_FORMAT_AUDIO..\n");
         return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
     }
 
@@ -307,7 +458,7 @@ int media_format_set_audio_bit(media_format_h fmt, int bit)
 
     if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
     {
-        LOGE("the format can not be changed..", __FUNCTION__);
+        LOGE("the format can not be changed..\n", __FUNCTION__);
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
     }
 
@@ -316,6 +467,7 @@ int media_format_set_audio_bit(media_format_h fmt, int bit)
 
     if (!(fmt_handle->mimetype & MEDIA_FORMAT_AUDIO))
     {
+        LOGE("The format handle is not for MEDIA_FORMAT_AUDIO..\n");
         return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
     }
 
@@ -332,7 +484,7 @@ int media_format_set_audio_avg_bps(media_format_h fmt, int avg_bps)
 
     if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
     {
-        LOGE("the format can not be changed..", __FUNCTION__);
+        LOGE("the format can not be changed..\n", __FUNCTION__);
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
     }
 
@@ -341,10 +493,37 @@ int media_format_set_audio_avg_bps(media_format_h fmt, int avg_bps)
 
     if (!(fmt_handle->mimetype & MEDIA_FORMAT_AUDIO))
     {
+        LOGE("The format handle is not for MEDIA_FORMAT_AUDIO..\n");
         return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
     }
 
     fmt_handle->detail.audio.avg_bps = avg_bps;
+
+    return ret;
+}
+
+int media_format_set_audio_aac_type(media_format_h fmt, bool is_adts)
+{
+
+    int ret = MEDIA_FORMAT_ERROR_NONE;
+    MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+
+    if (!MEDIA_FORMAT_IS_WRITABLE(fmt))
+    {
+        LOGE("the format can not be changed..\n", __FUNCTION__);
+        return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+    }
+
+    media_format_s* fmt_handle;
+    fmt_handle = (media_format_s*)fmt;
+
+    if (!(fmt_handle->mimetype & MEDIA_FORMAT_AUDIO))
+    {
+        LOGE("The format handle is not for MEDIA_FORMAT_AUDIO..\n");
+        return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
+    }
+
+    fmt_handle->detail.audio.is_adts = is_adts;
 
     return ret;
 }
@@ -377,11 +556,15 @@ int media_format_unref(media_format_h fmt)
     fmt_handle = (media_format_s*)fmt;
 
     if (MEDIA_FORMAT_GET_REFCOUNT(fmt) <= 0)
+    {
+        LOGE("The format ref_count is less than 0..\n");
         return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+    }
 
     is_zero = g_atomic_int_dec_and_test(&fmt_handle->ref_count);
     if (is_zero)
     {
+        LOGI("The format handle(%p) will be destroyed..\n", fmt);
         /* if reference count become 0 , free fmt. */
         _media_format_destroy(fmt_handle);
     }
@@ -393,14 +576,14 @@ int media_format_is_writable(media_format_h fmt, bool* is_writable)
 {
     int ret = MEDIA_FORMAT_ERROR_NONE;
     MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+    if (MEDIA_FORMAT_GET_REFCOUNT(fmt) <= 0)
+    {
+        LOGE("The format ref_count is less than 0..\n.");
+        ret = MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+    }
 
     media_format_s* fmt_handle;
     fmt_handle = (media_format_s*)fmt;
-
-    if (g_atomic_int_get(&fmt_handle->ref_count) <= 0)
-    {
-        return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
-    }
 
     if (g_atomic_int_get(&fmt_handle->ref_count) == 1)
     {
@@ -453,6 +636,7 @@ int media_format_make_writable(media_format_h fmt, media_format_h* out_fmt)
         }
 
         *out_fmt = (media_format_h)copy;
+        LOGI("the copied new format handle: %p\n", *out_fmt);
 
     }
 
