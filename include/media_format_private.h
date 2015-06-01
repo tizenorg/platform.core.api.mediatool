@@ -114,6 +114,7 @@ typedef struct _media_format_video_spec_s {
     int height;          /**< media format video height */
     int avg_bps;          /**< media format video average bps */
     int max_bps;          /**< media format video max bps */
+    int frame_rate;          /**< media format video frame rate (@since_tizen mmfw_internal) */
 } media_format_video_spec_s;
 
 /**
@@ -125,6 +126,7 @@ typedef struct _media_fomat_audio_spec_s {
     int samplerate;          /**< media format audio sampling rate */
     int bit;                /**< media format audio's the bit resolution */
     int avg_bps;          /**< media format audio max bps */
+    bool is_adts;          /**< media format audio aac adts flag */
 } media_format_audio_spec_s;
 
 /**

@@ -1,7 +1,7 @@
 Name:       capi-media-tool
 Summary:    A Core API media tool library in Tizen Native API
 Version:    0.1.1
-Release:    1
+Release:    2
 Group:      Multimedia/API
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz

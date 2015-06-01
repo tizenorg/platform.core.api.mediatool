@@ -105,6 +105,7 @@ typedef enum {
     MEDIA_BUFFER_TYPE_EXTERNAL_TBM_SURFACE,
     MEDIA_BUFFER_TYPE_NORMAL,
     MEDIA_BUFFER_TYPE_AUTO,
+    MEDIA_BUFFER_TYPE_EXTERNAL_MEMORY,
     MEDIA_BUFFER_TYPE_MAX
 } media_buffer_type_e;
 
@@ -119,7 +120,9 @@ typedef struct _media_packet_s{
     media_packet_finalize_cb finalizecb_func;
     void* userdata;
     bool is_allocated;
-    void *extradata;
+    void* extradata;
+    void* codec_data;
+    unsigned int codec_data_size;
 
     media_format_s* format;
     media_buffer_type_e type;
