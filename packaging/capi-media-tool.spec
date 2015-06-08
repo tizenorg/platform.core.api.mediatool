@@ -9,6 +9,7 @@ BuildRequires:  cmake
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(capi-base-common)
+BuildRequires:  pkgconfig(elementary)
 BuildRequires:  pkgconfig(appcore-efl)
 BuildRequires:  pkgconfig(libtbm)
 
