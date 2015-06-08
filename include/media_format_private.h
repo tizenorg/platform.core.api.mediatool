@@ -114,7 +114,7 @@ typedef struct _media_format_video_spec_s {
     int height;          /**< media format video height */
     int avg_bps;          /**< media format video average bps */
     int max_bps;          /**< media format video max bps */
-    int frame_rate;          /**< media format video frame rate (@since_tizen mmfw_internal) */
+    int frame_rate;          /**< media format video frame rate (Since tizen 3.0) */
 } media_format_video_spec_s;
 
 /**
