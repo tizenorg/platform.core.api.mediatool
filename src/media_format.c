@@ -56,7 +56,7 @@ static void _media_format_destroy(media_format_s* fmt)
     fmt = NULL;
 }
 
-int media_format_get_mime_format_type(media_format_h fmt, media_format_type_e* formattype)
+int media_format_get_type(media_format_h fmt, media_format_type_e* formattype)
 {
     int ret = MEDIA_FORMAT_ERROR_NONE;
     MEDIA_FORMAT_INSTANCE_CHECK(fmt);
