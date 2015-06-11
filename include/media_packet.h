@@ -695,7 +695,7 @@ int media_packet_is_raw(media_packet_h packet, bool *is_raw);
 
 /**
  * @brief Gets #media_buffer_flags_e of media packet.
- * @since_tizen
+ * @since_tizen 3.0
  *
  * @param[in] packet    The media packet handle
  * @param[out] flags    The media_buffer_flags_e of media packet to get
@@ -945,4 +945,4 @@ int media_packet_destroy(media_packet_h packet);
 }
 #endif
 
-#endif /* __TIZEN_MEDIA_AV_PACKET_BUFFER_H__ */
+#endif /* __TIZEN_MEDIA_PACKET_H__ */
