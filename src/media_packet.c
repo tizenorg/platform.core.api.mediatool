@@ -666,17 +666,7 @@ int media_packet_create_from_external_memory(media_format_h fmt, void *mem_ptr, 
     /* take handle */
     *packet = (media_packet_h)handle;
     LOGI("[%s] new handle : %p", __FUNCTION__, *packet);
-    return ret;
 
-fail:
-
-    if (handle)
-    {
-        free(handle);
-        handle = NULL;
-    }
-
-    *packet = NULL;
     return ret;
 }
 
@@ -693,7 +683,6 @@ int media_packet_get_buffer_data_ptr(media_packet_h packet, void **data)
     *data = handle->data;
 
     return ret;
-
 }
 
 int media_packet_get_tbm_surface(media_packet_h packet, tbm_surface_h *surface)

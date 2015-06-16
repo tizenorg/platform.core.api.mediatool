@@ -49,8 +49,8 @@ make %{?jobs:-j%jobs}
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_datadir}/license
-mkdir -p %{buildroot}/opt/usr/devel
-cp test/media_packet_test %{buildroot}/opt/usr/devel
+mkdir -p %{buildroot}/usr/bin
+cp test/media_packet_test %{buildroot}/usr/bin
 cp LICENSE.APLv2 %{buildroot}%{_datadir}/license/%{name}
 %make_install
 
@@ -66,8 +66,7 @@ cp LICENSE.APLv2 %{buildroot}%{_datadir}/license/%{name}
 %manifest capi-media-tool.manifest
 %{_libdir}/libcapi-media-tool.so.*
 %{_datadir}/license/%{name}
-/opt/usr/devel/*
-#%{_bindir}/*
+%{_bindir}/*
 
 
 %files devel
