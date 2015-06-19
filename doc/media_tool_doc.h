@@ -20,7 +20,7 @@
 
 
 /**
- * @file capi_media_tool_doc.h
+ * @file media_tool_doc.h
  * @brief This file contains high level documentation of the CAPI MEDIA TOOL API.
  */
 
