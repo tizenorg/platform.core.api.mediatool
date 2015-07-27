@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+/* Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -1432,16 +1432,16 @@ static void* _aligned_malloc_normal_buffer_type (uint64_t size, int alignment)
     unsigned char* buffer_ptr;
     unsigned char* temp_ptr;
 
-    if((temp_ptr = (void*)malloc(size + alignment)) != NULL)
+    if((temp_ptr = (unsigned char*)malloc(size + alignment)) != NULL)
     {
-        buffer_ptr = (void*)((unsigned int)(temp_ptr + alignment - 1) & (~(unsigned int)(alignment -1)));
+        buffer_ptr = (unsigned char*)((unsigned long int)(temp_ptr + alignment - 1) & (~(unsigned long int)(alignment -1)));
 
         if(buffer_ptr == temp_ptr)
         {
             buffer_ptr += alignment;
         }
 
-        *(buffer_ptr - 1) = (unsigned int)(buffer_ptr - temp_ptr);
+        *(buffer_ptr - 1) = (unsigned long int)(buffer_ptr - temp_ptr);
         return (void*)buffer_ptr;
     }
 
