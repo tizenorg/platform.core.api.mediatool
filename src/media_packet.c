@@ -31,9 +31,8 @@ static int _pkt_alloc_buffer(media_packet_s* pkt);
 static uint64_t _pkt_calculate_video_buffer_size(media_packet_s* pkt);
 static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s* pkt);
 static uint32_t _convert_to_tbm_surface_format(media_format_mimetype_e format_type);
-static void* _aligned_malloc_normal_buffer_type (uint64_t size, int alignment);
-static void _aligned_free_normal_buffer_type (void* buffer_ptr);
 
+#define ALIGNMENT 16 /* 16 bytes alignment */
 
 int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet)
 {
@@ -286,7 +285,7 @@ int _pkt_alloc_buffer(media_packet_s* pkt)
         {
             buffersize = _pkt_calculate_video_buffer_size(pkt);
             // 16bytes aligned malloc
-            pkt->data = _aligned_malloc_normal_buffer_type(buffersize, 16);
+            pkt->data = aligned_alloc(ALIGNMENT, (size_t)buffersize);
             if (!pkt->data)
             {
                 return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
@@ -1347,7 +1346,7 @@ int media_packet_destroy(media_packet_h packet)
     {
         if(handle->data)
         {
-            _aligned_free_normal_buffer_type(handle->data);
+            free(handle->data);
             handle->data = NULL;
         }
     }
@@ -1424,44 +1423,5 @@ static uint32_t _convert_to_tbm_surface_format(media_format_mimetype_e format_ty
         }
 
     return tbm_format;
-}
-
-
-static void* _aligned_malloc_normal_buffer_type (uint64_t size, int alignment)
-{
-    unsigned char* buffer_ptr;
-    unsigned char* temp_ptr;
-
-    if((temp_ptr = (unsigned char*)malloc(size + alignment)) != NULL)
-    {
-        buffer_ptr = (unsigned char*)((unsigned long int)(temp_ptr + alignment - 1) & (~(unsigned long int)(alignment -1)));
-
-        if(buffer_ptr == temp_ptr)
-        {
-            buffer_ptr += alignment;
-        }
-
-        *(buffer_ptr - 1) = (unsigned char)(buffer_ptr - temp_ptr);
-        return (void*)buffer_ptr;
-    }
-
-    return NULL;
-}
-
-static void _aligned_free_normal_buffer_type (void* buffer_ptr)
-{
-    unsigned char* ptr;
-    if (buffer_ptr == NULL)
-        return;
-
-    ptr = (unsigned char*)buffer_ptr;
-
-    // *(ptr - 1) holds the offset to the real allocated block
-    // we sub that offset os we free the real pointer
-    ptr -= *(ptr - 1);
-
-    // Free the memory
-    free(ptr);
-    ptr = NULL;
 }
 
