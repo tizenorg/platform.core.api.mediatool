@@ -48,7 +48,6 @@ extern "C" {
   }))
 #endif
 
-
 #define MEDIA_FORMAT_CAST(obj) ((media_format_s*)(obj))
 
 /**
@@ -109,45 +108,42 @@ extern "C" {
  * @brief Media format for configuring video codec.
  * @since_tizen 2.3
  */
-typedef struct _media_format_video_spec_s {
-    int width;          /**< media format video width */
-    int height;          /**< media format video height */
-    int avg_bps;          /**< media format video average bps */
-    int max_bps;          /**< media format video max bps */
-    int frame_rate;          /**< media format video frame rate (Since 3.0) */
-} media_format_video_spec_s;
+	typedef struct _media_format_video_spec_s {
+		int width;		/**< media format video width */
+		int height;		 /**< media format video height */
+		int avg_bps;	  /**< media format video average bps */
+		int max_bps;	  /**< media format video max bps */
+		int frame_rate;		 /**< media format video frame rate (Since 3.0) */
+	} media_format_video_spec_s;
 
 /**
  * @brief Media format for configuring audio codec.
  * @since_tizen 2.3
  */
-typedef struct _media_fomat_audio_spec_s {
-    int channel;          /**< media format audio's the number of channels */
-    int samplerate;          /**< media format audio sampling rate */
-    int bit;                /**< media format audio's the bit resolution */
-    int avg_bps;          /**< media format audio max bps */
-    bool is_adts;          /**< media format audio aac adts flag */
-} media_format_audio_spec_s;
+	typedef struct _media_fomat_audio_spec_s {
+		int channel;	  /**< media format audio's the number of channels */
+		int samplerate;		 /**< media format audio sampling rate */
+		int bit;			/**< media format audio's the bit resolution */
+		int avg_bps;	  /**< media format audio max bps */
+		bool is_adts;	   /**< media format audio aac adts flag */
+	} media_format_audio_spec_s;
 
 /**
  * @brief Structure of media format.
  * @since_tizen 2.3
  */
-typedef struct _media_format_s
-{
-    int ref_count;          /**< media format struct reference count */
-    media_format_mimetype_e mimetype;          /**< media format struct mimetype of media_format_mimetype_e */
+	typedef struct _media_format_s {
+		int ref_count;		/**< media format struct reference count */
+		media_format_mimetype_e mimetype;	   /**< media format struct mimetype of media_format_mimetype_e */
 
-    union {
-        media_format_audio_spec_s audio;          /**< media format struct audio of media_format_audio_spec_s */
-        media_format_video_spec_s video;          /**< media format struct video of media_format_video_spec_s */
-    }detail;
+		union {
+			media_format_audio_spec_s audio;	  /**< media format struct audio of media_format_audio_spec_s */
+			media_format_video_spec_s video;	  /**< media format struct video of media_format_video_spec_s */
+		} detail;
 
-} media_format_s;
+	} media_format_s;
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __TIZEN_MEDIA_FORMAT_PRIVATE_H__ */
-
+#endif							/* __TIZEN_MEDIA_FORMAT_PRIVATE_H__ */
