@@ -29,9 +29,9 @@ extern "C" {
 #endif
 #define LOG_TAG "TIZEN_MEDIA_TOOL"
 
-#define MEDIA_PACKET_CHECK_CONDITION(condition,error,msg)     \
-                if(condition) {} else \
-                { LOGE("[%s] %s(0x%08x)", __FUNCTION__, msg,error); return error;}; \
+#define MEDIA_PACKET_CHECK_CONDITION(condition, error, msg)     \
+                if (condition) {} else \
+                { LOGE("[%s] %s(0x%08x)", __FUNCTION__, msg, error); return error; }; \
 
 #define MEDIA_PACKET_INSTANCE_CHECK(media_packet)   \
         MEDIA_PACKET_CHECK_CONDITION(media_packet != NULL, MEDIA_PACKET_ERROR_INVALID_PARAMETER, "MEDIA_PACKET_ERROR_INVALID_PARAMETER")
@@ -99,40 +99,37 @@ extern "C" {
  */
 #define MEDIA_PACKET_CAST(obj) ((media_packet_s*)(obj))
 
+	typedef enum {
+		MEDIA_BUFFER_TYPE_TBM_SURFACE,
+		MEDIA_BUFFER_TYPE_EXTERNAL_TBM_SURFACE,
+		MEDIA_BUFFER_TYPE_NORMAL,
+		MEDIA_BUFFER_TYPE_AUTO,
+		MEDIA_BUFFER_TYPE_EXTERNAL_MEMORY,
+		MEDIA_BUFFER_TYPE_MAX
+	} media_buffer_type_e;
 
-typedef enum {
-    MEDIA_BUFFER_TYPE_TBM_SURFACE,
-    MEDIA_BUFFER_TYPE_EXTERNAL_TBM_SURFACE,
-    MEDIA_BUFFER_TYPE_NORMAL,
-    MEDIA_BUFFER_TYPE_AUTO,
-    MEDIA_BUFFER_TYPE_EXTERNAL_MEMORY,
-    MEDIA_BUFFER_TYPE_MAX
-} media_buffer_type_e;
+	typedef struct _media_packet_s {
 
-typedef struct _media_packet_s{
+		uint64_t pts;
+		uint64_t dts;
+		uint64_t duration;
+		uint64_t size;
+		void *data;
+		void *surface_data;
+		media_packet_finalize_cb finalizecb_func;
+		void *userdata;
+		bool is_allocated;
+		void *extradata;
+		void *codec_data;
+		unsigned int codec_data_size;
 
-    uint64_t pts;
-    uint64_t dts;
-    uint64_t duration;
-    uint64_t size;
-    void* data;
-    void* surface_data;
-    media_packet_finalize_cb finalizecb_func;
-    void* userdata;
-    bool is_allocated;
-    void* extradata;
-    void* codec_data;
-    unsigned int codec_data_size;
+		media_format_s *format;
+		media_buffer_type_e type;
+		media_buffer_flags_e flags;
 
-    media_format_s* format;
-    media_buffer_type_e type;
-    media_buffer_flags_e flags;
-
-} media_packet_s;
+	} media_packet_s;
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __TIZEN_MEDIA_PACKET_PRIVATE_H__ */
-
+#endif							/* __TIZEN_MEDIA_PACKET_PRIVATE_H__ */
