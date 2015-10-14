@@ -29,9 +29,9 @@ extern "C" {
 #endif
 #define LOG_TAG "TIZEN_MEDIA_TOOL"
 
-#define MEDIA_FORMAT_CHECK_CONDITION(condition,error,msg)     \
-                if(condition) {} else \
-                { LOGE("[%s] %s(0x%08x)", __FUNCTION__, msg,error); return error;}; \
+#define MEDIA_FORMAT_CHECK_CONDITION(condition, error, msg)     \
+                if (condition) {} else \
+                { LOGE("[%s] %s(0x%08x)", __FUNCTION__, msg, error); return error; }; \
 
 #define MEDIA_FORMAT_INSTANCE_CHECK(media_format)   \
         MEDIA_FORMAT_CHECK_CONDITION(media_format != NULL, MEDIA_FORMAT_ERROR_INVALID_PARAMETER, "MEDIA_FORMAT_ERROR_INVALID_PARAMETER")
@@ -42,12 +42,11 @@ extern "C" {
 #if 0
 #define atomic_int_inc(atomic) \
   (__extension__({                                                          \
-    STATIC_ASSERT (sizeof *(atomic) == sizeof (int));                     \
+    STATIC_ASSERT(sizeof *(atomic) == sizeof(int));                     \
     (void) (0 ? *(atomic) ^ *(atomic) : 0);                                  \
-    (void) __sync_fetch_and_add ((atomic), 1);                               \
+    (void) __sync_fetch_and_add((atomic), 1);                               \
   }))
 #endif
-
 
 #define MEDIA_FORMAT_CAST(obj) ((media_format_s*)(obj))
 
@@ -110,11 +109,11 @@ extern "C" {
  * @since_tizen 2.3
  */
 typedef struct _media_format_video_spec_s {
-    int width;          /**< media format video width */
-    int height;          /**< media format video height */
-    int avg_bps;          /**< media format video average bps */
-    int max_bps;          /**< media format video max bps */
-    int frame_rate;          /**< media format video frame rate (Since 3.0) */
+	int width;			/**< media format video width */
+	int height;			 /**< media format video height */
+	int avg_bps;		  /**< media format video average bps */
+	int max_bps;		  /**< media format video max bps */
+	int frame_rate;			 /**< media format video frame rate (Since 3.0) */
 } media_format_video_spec_s;
 
 /**
@@ -122,26 +121,25 @@ typedef struct _media_format_video_spec_s {
  * @since_tizen 2.3
  */
 typedef struct _media_fomat_audio_spec_s {
-    int channel;          /**< media format audio's the number of channels */
-    int samplerate;          /**< media format audio sampling rate */
-    int bit;                /**< media format audio's the bit resolution */
-    int avg_bps;          /**< media format audio max bps */
-    bool is_adts;          /**< media format audio aac adts flag */
+	int channel;		  /**< media format audio's the number of channels */
+	int samplerate;			 /**< media format audio sampling rate */
+	int bit;				/**< media format audio's the bit resolution */
+	int avg_bps;		  /**< media format audio max bps */
+	bool is_adts;		   /**< media format audio aac adts flag */
 } media_format_audio_spec_s;
 
 /**
  * @brief Structure of media format.
  * @since_tizen 2.3
  */
-typedef struct _media_format_s
-{
-    int ref_count;          /**< media format struct reference count */
-    media_format_mimetype_e mimetype;          /**< media format struct mimetype of media_format_mimetype_e */
+typedef struct _media_format_s {
+	int ref_count;			/**< media format struct reference count */
+	media_format_mimetype_e mimetype;		   /**< media format struct mimetype of media_format_mimetype_e */
 
-    union {
-        media_format_audio_spec_s audio;          /**< media format struct audio of media_format_audio_spec_s */
-        media_format_video_spec_s video;          /**< media format struct video of media_format_video_spec_s */
-    }detail;
+	union {
+		media_format_audio_spec_s audio;		  /**< media format struct audio of media_format_audio_spec_s */
+		media_format_video_spec_s video;		  /**< media format struct video of media_format_video_spec_s */
+	} detail;
 
 } media_format_s;
 
@@ -149,5 +147,4 @@ typedef struct _media_format_s
 }
 #endif
 
-#endif /* __TIZEN_MEDIA_FORMAT_PRIVATE_H__ */
-
+#endif							/* __TIZEN_MEDIA_FORMAT_PRIVATE_H__ */

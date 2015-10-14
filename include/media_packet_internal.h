@@ -33,7 +33,6 @@ extern "C" {
  * @{
  */
 
-
 /**
  * @internal
  * @brief Sets codec data and the codec data size of media packet.
@@ -49,8 +48,7 @@ extern "C" {
  * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
  */
-int media_packet_set_codec_data(media_packet_h packet, void* codec_data, unsigned int codec_data_size);
-
+int media_packet_set_codec_data(media_packet_h packet, void *codec_data, unsigned int codec_data_size);
 
 /**
  * @}
@@ -60,4 +58,4 @@ int media_packet_set_codec_data(media_packet_h packet, void* codec_data, unsigne
 }
 #endif
 
-#endif /* __TIZEN_MEDIA_PACKET_INTERNAL_H__ */
+#endif							/* __TIZEN_MEDIA_PACKET_INTERNAL_H__ */

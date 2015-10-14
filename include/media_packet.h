@@ -49,24 +49,22 @@ typedef struct media_packet_s *media_packet_h;
  * @brief Enumeration for media packet error.
  * @since_tizen 2.3
  */
-typedef enum
-{
-    MEDIA_PACKET_ERROR_NONE     = TIZEN_ERROR_NONE,                                     /**< Successful */
-    MEDIA_PACKET_ERROR_OUT_OF_MEMORY    = TIZEN_ERROR_OUT_OF_MEMORY,                    /**< Out of memory */
-    MEDIA_PACKET_ERROR_INVALID_PARAMETER  = TIZEN_ERROR_INVALID_PARAMETER,              /**< Invalid parameter */
-    MEDIA_PACKET_ERROR_INVALID_OPERATION    = TIZEN_ERROR_INVALID_OPERATION,            /**< Invalid operation */
-    MEDIA_PACKET_ERROR_FILE_NO_SPACE_ON_DEVICE = TIZEN_ERROR_FILE_NO_SPACE_ON_DEVICE,   /**< No space left on device */
+typedef enum {
+	MEDIA_PACKET_ERROR_NONE = TIZEN_ERROR_NONE,											/**< Successful */
+	MEDIA_PACKET_ERROR_OUT_OF_MEMORY = TIZEN_ERROR_OUT_OF_MEMORY,						/**< Out of memory */
+	MEDIA_PACKET_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER,				/**< Invalid parameter */
+	MEDIA_PACKET_ERROR_INVALID_OPERATION = TIZEN_ERROR_INVALID_OPERATION,				/**< Invalid operation */
+	MEDIA_PACKET_ERROR_FILE_NO_SPACE_ON_DEVICE = TIZEN_ERROR_FILE_NO_SPACE_ON_DEVICE,	/**< No space left on device */
 } media_packet_error_e;
 
 /**
  * @brief Enumeration for media buffer flag.
  * @since_tizen 2.3
  */
-typedef enum
-{
-    MEDIA_PACKET_CODEC_CONFIG = 0x1,   /**< The buffer marked as such contains codec initialization/codec specific data instead of media data */
-    MEDIA_PACKET_END_OF_STREAM = 0x2,  /**< The end of stream */
-    MEDIA_PACKET_SYNC_FRAME = 0x4,     /**< The buffer marked as such contains the data for a sync frame */
+typedef enum {
+	MEDIA_PACKET_CODEC_CONFIG = 0x1,   /**< The buffer marked as such contains codec initialization/codec specific data instead of media data */
+	MEDIA_PACKET_END_OF_STREAM = 0x2,  /**< The end of stream */
+	MEDIA_PACKET_SYNC_FRAME = 0x4,	   /**< The buffer marked as such contains the data for a sync frame */
 } media_buffer_flags_e;
 
 /**
@@ -74,10 +72,9 @@ typedef enum
  * @since_tizen 2.3
  * @see media_packet_finalize_cb()
  */
-typedef enum _finalize_cb_ret
-{
-    MEDIA_PACKET_REUSE = 0,  /**< Packet handle is not destroyed */
-    MEDIA_PACKET_FINALIZE,   /**< Destroy packet handle */
+typedef enum _finalize_cb_ret {
+	MEDIA_PACKET_REUSE = 0,	 /**< Packet handle is not destroyed */
+	MEDIA_PACKET_FINALIZE,	 /**< Destroy packet handle */
 } media_packet_finalize_cb_ret_t;
 
 /**
@@ -101,7 +98,7 @@ typedef enum _finalize_cb_ret
  * @see media_packet_copy()
  * @see media_packet_create_from_tbm_surface()
  */
-typedef int (*media_packet_finalize_cb)(media_packet_h packet, int error_code, void *user_data);
+typedef int (*media_packet_finalize_cb) (media_packet_h packet, int error_code, void *user_data);
 
 /**
  * @brief    Creates a media packet handle and allocates buffer.
@@ -158,7 +155,7 @@ typedef int (*media_packet_finalize_cb)(media_packet_h packet, int error_code, v
 
    @endcode
  */
-int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet);
+int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h * packet);
 
 /**
  * @brief    Creates a media packet handle.
@@ -215,7 +212,7 @@ int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, 
 
    @endcode
  */
-int media_packet_create(media_format_h fmt, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet);
+int media_packet_create(media_format_h fmt, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h * packet);
 
 /**
  * @brief    Copies a media packet handle.
@@ -239,7 +236,7 @@ int media_packet_create(media_format_h fmt, media_packet_finalize_cb fcb, void *
  * @see media_packet_destroy()
  * @see media_packet_finalize_cb()
  */
-int media_packet_copy(media_packet_h org_packet, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h* new_packet);
+int media_packet_copy(media_packet_h org_packet, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h * new_packet);
 
 /**
  * @brief    Allocates buffer with media packet handle.
@@ -316,7 +313,7 @@ int media_packet_alloc(media_packet_h packet);
 
    @endcode
  */
-int media_packet_create_from_tbm_surface(media_format_h fmt, tbm_surface_h surface, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet);
+int media_packet_create_from_tbm_surface(media_format_h fmt, tbm_surface_h surface, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h * packet);
 
 /**
  * @brief    Creates media packet handle with already allocated external buffer.
@@ -374,7 +371,7 @@ int media_packet_create_from_tbm_surface(media_format_h fmt, tbm_surface_h surfa
 
    @endcode
  */
-int media_packet_create_from_external_memory(media_format_h fmt, void *mem_ptr, uint64_t size, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet);
+int media_packet_create_from_external_memory(media_format_h fmt, void *mem_ptr, uint64_t size, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h * packet);
 
 /**
  * @brief Gets #media_format_h of media packet
@@ -405,7 +402,7 @@ int media_packet_create_from_external_memory(media_format_h fmt, void *mem_ptr, 
 
    @endcode
  */
-int media_packet_get_format(media_packet_h packet, media_format_h *fmt);
+int media_packet_get_format(media_packet_h packet, media_format_h * fmt);
 
 /**
  * @brief Sets #media_format_h of media packet
@@ -511,7 +508,7 @@ int media_packet_set_buffer_size(media_packet_h packet, uint64_t size);
  * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
  */
-int media_packet_get_pts(media_packet_h packet, uint64_t *pts);
+int media_packet_get_pts(media_packet_h packet, uint64_t * pts);
 
 /**
  * @brief Gets DTS of media packet
@@ -526,7 +523,7 @@ int media_packet_get_pts(media_packet_h packet, uint64_t *pts);
  * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
  */
-int media_packet_get_dts(media_packet_h packet, uint64_t *dts);
+int media_packet_get_dts(media_packet_h packet, uint64_t * dts);
 
 /**
  * @brief Gets duration of media packet.
@@ -541,7 +538,7 @@ int media_packet_get_dts(media_packet_h packet, uint64_t *dts);
  * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
  */
-int media_packet_get_duration(media_packet_h packet, uint64_t *duration);
+int media_packet_get_duration(media_packet_h packet, uint64_t * duration);
 
 /**
  * @brief Gets buffer size of media packet.
@@ -556,7 +553,7 @@ int media_packet_get_duration(media_packet_h packet, uint64_t *duration);
  * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
  */
-int media_packet_get_buffer_size(media_packet_h packet, uint64_t *size);
+int media_packet_get_buffer_size(media_packet_h packet, uint64_t * size);
 
 /**
  * @brief Gets buffer data pointer of media packet.
@@ -586,7 +583,7 @@ int media_packet_get_buffer_data_ptr(media_packet_h packet, void **data);
  * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
  */
-int media_packet_get_tbm_surface(media_packet_h packet, tbm_surface_h *surface);
+int media_packet_get_tbm_surface(media_packet_h packet, tbm_surface_h * surface);
 
 /**
  * @brief Sets extra data of media packet.
@@ -635,7 +632,7 @@ int media_packet_get_extra(media_packet_h packet, void **extra);
  * @see media_format_mimetype_e
  * @see media_format_type_e
  */
-int media_packet_is_video(media_packet_h packet, bool *is_video);
+int media_packet_is_video(media_packet_h packet, bool * is_video);
 
 /**
  * @brief Checks whether the given media packet is for audio.
@@ -653,7 +650,7 @@ int media_packet_is_video(media_packet_h packet, bool *is_video);
  * @see media_format_mimetype_e
  * @see media_format_type_e
  */
-int media_packet_is_audio(media_packet_h packet, bool *is_audio);
+int media_packet_is_audio(media_packet_h packet, bool * is_audio);
 
 /**
  * @brief Checks whether the given media packet is encoded type.
@@ -672,7 +669,7 @@ int media_packet_is_audio(media_packet_h packet, bool *is_audio);
  * @see media_format_mimetype_e
  * @see media_format_data_type_e
  */
-int media_packet_is_encoded(media_packet_h packet, bool *is_encoded);
+int media_packet_is_encoded(media_packet_h packet, bool * is_encoded);
 
 /**
  * @brief Checks whether the given media packet is raw type.
@@ -691,7 +688,7 @@ int media_packet_is_encoded(media_packet_h packet, bool *is_encoded);
  * @see media_format_mimetype_e
  * @see media_format_data_type_e
  */
-int media_packet_is_raw(media_packet_h packet, bool *is_raw);
+int media_packet_is_raw(media_packet_h packet, bool * is_raw);
 
 /**
  * @brief Gets #media_buffer_flags_e of media packet.
@@ -709,7 +706,7 @@ int media_packet_is_raw(media_packet_h packet, bool *is_raw);
  * @see media_buffer_flags_e
  * @see media_packet_unset_flags()
  */
-int media_packet_get_flags(media_packet_h packet, media_buffer_flags_e *flags);
+int media_packet_get_flags(media_packet_h packet, media_buffer_flags_e * flags);
 
 /**
  * @brief Sets #media_buffer_flags_e of media packet.
@@ -764,7 +761,7 @@ int media_packet_unset_flags(media_packet_h packet, media_buffer_flags_e flags);
  * @see media_format_mimetype_e
  * @see media_format_data_type_e
  */
-int media_packet_is_codec_config(media_packet_h packet, bool *is_codec_config);
+int media_packet_is_codec_config(media_packet_h packet, bool * is_codec_config);
 
 /**
  * @brief Checks whether the given media packet is eos.
@@ -783,7 +780,7 @@ int media_packet_is_codec_config(media_packet_h packet, bool *is_codec_config);
  * @see media_format_mimetype_e
  * @see media_format_data_type_e
  */
-int media_packet_is_end_of_stream(media_packet_h packet, bool *is_eos);
+int media_packet_is_end_of_stream(media_packet_h packet, bool * is_eos);
 
 /**
  * @brief Checks whether the given media packet is sync frame.
@@ -802,7 +799,7 @@ int media_packet_is_end_of_stream(media_packet_h packet, bool *is_eos);
  * @see media_format_mimetype_e
  * @see media_format_data_type_e
  */
-int media_packet_is_sync_frame(media_packet_h packet, bool *is_sync);
+int media_packet_is_sync_frame(media_packet_h packet, bool * is_sync);
 
 /**
  * @brief Checks whether the allocated buffer is tbm surface or not.
@@ -818,7 +815,7 @@ int media_packet_is_sync_frame(media_packet_h packet, bool *is_sync);
  * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
  */
-int media_packet_has_tbm_surface_buffer(media_packet_h packet, bool* has_tbm_surface);
+int media_packet_has_tbm_surface_buffer(media_packet_h packet, bool * has_tbm_surface);
 
 /**
  * @brief Gets the number of planes from tbm surface in the given media packet.
@@ -837,7 +834,7 @@ int media_packet_has_tbm_surface_buffer(media_packet_h packet, bool* has_tbm_sur
  * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
  */
-int media_packet_get_number_of_video_planes(media_packet_h packet, uint32_t* num);
+int media_packet_get_number_of_video_planes(media_packet_h packet, uint32_t * num);
 
 /**
  * @brief Gets stride width from tbm surface in the given media packet.
@@ -914,7 +911,7 @@ int media_packet_get_video_plane_data_ptr(media_packet_h packet, int plane_idx, 
  * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
  */
-int media_packet_get_codec_data(media_packet_h packet, void** codec_data, unsigned int* codec_data_size);
+int media_packet_get_codec_data(media_packet_h packet, void **codec_data, unsigned int *codec_data_size);
 
 /**
  * @brief Destroys the media packet handle.
@@ -945,4 +942,4 @@ int media_packet_destroy(media_packet_h packet);
 }
 #endif
 
-#endif /* __TIZEN_MEDIA_PACKET_H__ */
+#endif							/* __TIZEN_MEDIA_PACKET_H__ */
