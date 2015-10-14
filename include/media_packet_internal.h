@@ -20,7 +20,7 @@
 #include <media_packet.h>
 
 #ifdef __cplusplus
-extern "C" {
+//extern "C" {
 #endif
 
 /**
@@ -32,7 +32,6 @@ extern "C" {
  * @addtogroup CAPI_MEDIA_TOOL_MODULE
  * @{
  */
-
 
 /**
  * @internal
@@ -49,15 +48,14 @@ extern "C" {
  * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
  */
-int media_packet_set_codec_data(media_packet_h packet, void* codec_data, unsigned int codec_data_size);
-
+int media_packet_set_codec_data(media_packet_h packet, void *codec_data, unsigned int codec_data_size);
 
 /**
  * @}
  */
 
 #ifdef __cplusplus
-}
+//}
 #endif
 
-#endif /* __TIZEN_MEDIA_PACKET_INTERNAL_H__ */
+#endif							/* __TIZEN_MEDIA_PACKET_INTERNAL_H__ */

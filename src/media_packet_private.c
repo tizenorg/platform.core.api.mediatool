@@ -16,5 +16,3 @@
 
 #include <glib.h>
 #include <media_packet_private.h>
-
-
