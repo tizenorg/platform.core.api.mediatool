@@ -1256,7 +1256,7 @@ int media_packet_destroy(media_packet_h packet)
 	/* unreference media_format */
 	media_format_unref(handle->format);
 
-	LOGI("The packet handle(%p) is will be destroyed..\n", handle);
+	LOGI("The packet handle(%p) will be destroyed..\n", handle);
 
 	free(handle);
 	handle = NULL;
@@ -1307,7 +1307,7 @@ static uint32_t _convert_to_tbm_surface_format(media_format_mimetype_e format_ty
 		tbm_format = TBM_FORMAT_ARGB8888;
 		break;
 	default:
-		LOGE("Invalid format mime type!");
+		LOGE("Invalid media format mime type!");
 		tbm_format = 0;
 		break;
 	}
