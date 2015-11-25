@@ -653,6 +653,24 @@ int media_packet_is_video(media_packet_h packet, bool * is_video);
 int media_packet_is_audio(media_packet_h packet, bool * is_audio);
 
 /**
+ * @brief Checks whether the given media packet is for text.
+ * @since_tizen 3.0
+ *
+ * @param[in]  packet    The media packet handle
+ * @param[out] is_text  @c true if the given media packet is for text,
+ *                       otherwise @c false if the given media packet is not for text
+ *
+ * @return @c 0 on success,
+ *         otherwise a negative error value
+ * @retval #MEDIA_PACKET_ERROR_NONE              Successful
+ * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
+ * @see media_format_mimetype_e
+ * @see media_format_type_e
+ */
+int media_packet_is_text(media_packet_h packet, bool * is_text);
+
+/**
  * @brief Checks whether the given media packet is encoded type.
  * @since_tizen 2.3
  *
@@ -912,6 +930,22 @@ int media_packet_get_video_plane_data_ptr(media_packet_h packet, int plane_idx, 
  * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
  */
 int media_packet_get_codec_data(media_packet_h packet, void **codec_data, unsigned int *codec_data_size);
+
+/**
+ * @brief Sets codec data and the codec data size of media packet.
+ * @since_tizen 3.0
+ *
+ * @param[in] packet   The media packet handle
+ * @param[in] codec_data    The codec data to set
+ * @param[in] codec_data_size    The codec data size to set
+ *
+ * @return @c 0 on success,
+ *         otherwise a negative error value
+ * @retval #MEDIA_PACKET_ERROR_NONE              Successful
+ * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
+ */
+int media_packet_set_codec_data(media_packet_h packet, void *codec_data, unsigned int codec_data_size);
 
 /**
  * @brief Destroys the media packet handle.

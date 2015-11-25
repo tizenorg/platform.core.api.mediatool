@@ -66,7 +66,7 @@ extern "C" {
  * @brief Check whether given media format is for text or not
  * @since_tizen 2.3
  */
-#define MEDIA_FORMAT_IS_TEXT(x_fmt) (false)
+#define MEDIA_FORMAT_IS_TEXT(x_fmt) (MEDIA_FORMAT_CAST(x_fmt)->mimetype & MEDIA_FORMAT_TEXT)
 
 /**
  * @brief Check whether given media format is for raw type or not
@@ -126,7 +126,16 @@ typedef struct _media_fomat_audio_spec_s {
 	int bit;				/**< media format audio's the bit resolution */
 	int avg_bps;		  /**< media format audio max bps */
 	bool is_adts;		   /**< media format audio aac adts flag */
+	media_format_aac_header_type_e aac_header_type;			 /**< media format audio aac header type */
 } media_format_audio_spec_s;
+
+/**
+ * @brief Media format for configuring text.
+ * @since_tizen 3.0
+ */
+typedef struct _media_fomat_text_spec_s {
+	media_format_text_type_e type;			 /**< media format text (or subtile) codec type */
+} media_format_text_spec_s;
 
 /**
  * @brief Structure of media format.
@@ -139,6 +148,7 @@ typedef struct _media_format_s {
 	union {
 		media_format_audio_spec_s audio;		  /**< media format struct audio of media_format_audio_spec_s */
 		media_format_video_spec_s video;		  /**< media format struct video of media_format_video_spec_s */
+		media_format_text_spec_s text;			/**< media format struct video of media_format_text_spec_s (Since 3.0) */
 	} detail;
 
 } media_format_s;

@@ -30,6 +30,7 @@
 static int _pkt_alloc_buffer(media_packet_s * pkt);
 static uint64_t _pkt_calculate_video_buffer_size(media_packet_s * pkt);
 static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s * pkt);
+static uint64_t _pkt_calculate_text_buffer_size(media_packet_s * pkt);
 static uint32_t _convert_to_tbm_surface_format(media_format_mimetype_e format_type);
 static void *_aligned_malloc_normal_buffer_type(uint64_t size, int alignment);
 static void _aligned_free_normal_buffer_type(void *buffer_ptr);
@@ -46,8 +47,8 @@ int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, 
 		return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!MEDIA_FORMAT_IS_VIDEO(fmt) && !MEDIA_FORMAT_IS_AUDIO(fmt)) {
-		LOGE("The media format handle is not specified. set video info or audio info...");
+	if (!MEDIA_FORMAT_IS_VIDEO(fmt) && !MEDIA_FORMAT_IS_AUDIO(fmt) && !MEDIA_FORMAT_IS_TEXT(fmt)) {
+		LOGE("The media format handle is not specified. set video info, audio info or text info...");
 		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 	}
 
@@ -120,8 +121,8 @@ int media_packet_create(media_format_h fmt, media_packet_finalize_cb fcb, void *
 		return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!MEDIA_FORMAT_IS_VIDEO(fmt) && !MEDIA_FORMAT_IS_AUDIO(fmt)) {
-		LOGE("The media format handle is not specified. set video info or audio info...");
+	if (!MEDIA_FORMAT_IS_VIDEO(fmt) && !MEDIA_FORMAT_IS_AUDIO(fmt) && !MEDIA_FORMAT_IS_TEXT(fmt)) {
+		LOGE("The media format handle is not specified. set video info, audio info or text info...");
 		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 	}
 	/* TODO : need more validation on fmt */
@@ -266,8 +267,14 @@ int _pkt_alloc_buffer(media_packet_s * pkt)
 			if (!pkt->data) {
 				return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
 			}
-		} else {
+		} else if (MEDIA_FORMAT_IS_AUDIO(pkt->format)) {
 			buffersize = _pkt_calculate_audio_buffer_size(pkt);
+			pkt->data = (void *)malloc(buffersize);
+			if (!pkt->data) {
+				return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
+			}
+		} else {
+			buffersize = _pkt_calculate_text_buffer_size(pkt);
 			pkt->data = (void *)malloc(buffersize);
 			if (!pkt->data) {
 				return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
@@ -334,8 +341,6 @@ int _pkt_alloc_buffer(media_packet_s * pkt)
 	return MEDIA_PACKET_ERROR_NONE;
 }
 
-/* TODO : contact Kim Young Hun to make below api as a common */
-/* TODO : rename below macro or make it able to use original from mm_transform */
 #define _ROUND_UP_16(num) (((num)+15)&~15)
 #define _GEN_MASK(x) ((1<<(x))-1)
 #define _ROUND_UP_X(v, x) (((v) + _GEN_MASK(x)) & ~_GEN_MASK(x))
@@ -435,20 +440,25 @@ static uint64_t _pkt_calculate_video_buffer_size(media_packet_s * pkt)
 	return buffersize;
 }
 
-/* TODO : written by joungkook seo for audio */
-/* TODO : rename below macro or make it able to use original from mm_transform */
-#define PCM_MAX_FRM_SIZE        (2048)
+#define PCM_MAX_FRM_SIZE        (4608)	/* FLAC PCM have max 4608 */
 #define PCM_MIN_FRM_SIZE          (1024)
 #define AAC_MAX_SAMPLE_SIZE   (1024)
 #define MP3_MAX_SAMPLE_SIZE   (1152)
 #define AMR_MAX_SAMPLE_SIZE    (320)	/* AMR-NB(160), WB (320) */
 #define OGG_MAX_SAMPLE_SIZE   (2048)
+#define FLAC_MAX_SAMPLE_SIZE   (65536)	/* FIXME - full size = sample * ch * resolution */
+#define WMA_MAX_SAMPLE_SIZE   (10240)	/* FIXME - full size = sample * ch * resolution */
 
 #define MPEG_MAX_FRM_SIZE      (6144/4)	/* 1536 */
 #define AMR_MAX_FRM_SIZE             (96)	/* AMR-NB(32), WB (96) */
-#define OGG_MAX_FRM_SIZE   (2048)
+#define OGG_MAX_FRM_SIZE   (2048)	/* FIXME - Need */
+#define FLAC_MAX_FRM_SIZE   (4096)	/* FIXME - Need */
+#define WMA_MAX_FRM_SIZE   (2048)	/* FIXME - Need */
 
+#define PCM_MAX_NCH                  (2)
 #define MPEG_MIN_NCH                  (2)
+#define AMR_MAX_NCH                  (1)
+#define WMA_MAX_NCH                  (2)
 
 static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s * pkt)
 {
@@ -456,26 +466,37 @@ static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s * pkt)
 	int bit = 0;
 	uint64_t buffersize = 0;
 
-	if (!MEDIA_FORMAT_IS_VIDEO(pkt->format)) {
+	if (MEDIA_FORMAT_IS_AUDIO(pkt->format)) {
 		channel = pkt->format->detail.audio.channel;
 		bit = pkt->format->detail.audio.bit;
 	}
 
 	switch (pkt->format->mimetype) {
 	case MEDIA_FORMAT_PCM:
-		buffersize = (PCM_MAX_FRM_SIZE * channel) * (uint64_t) (bit / 8);
+		buffersize = (PCM_MAX_FRM_SIZE * PCM_MAX_NCH) * (uint64_t) (bit / 8);
 		break;
 	case MEDIA_FORMAT_AAC_LC:
 	case MEDIA_FORMAT_AAC_HE:
 	case MEDIA_FORMAT_AAC_HE_PS:
 	case MEDIA_FORMAT_MP3:
 		buffersize = (MPEG_MAX_FRM_SIZE * MPEG_MIN_NCH) * (uint64_t) (2);	/* 2 = (16bit/8) */
+		break;
 		/* TODO : extenstion format */
 	case MEDIA_FORMAT_AMR_NB:
 	case MEDIA_FORMAT_AMR_WB:
-		buffersize = (AMR_MAX_FRM_SIZE * MPEG_MIN_NCH) * (uint64_t) (2);	/* 2 = (16bit/8) */
+		buffersize = (AMR_MAX_FRM_SIZE * AMR_MAX_NCH) * (uint64_t) (2);	/* 2 = (16bit/8) */
+		break;
 	case MEDIA_FORMAT_VORBIS:
 		buffersize = (OGG_MAX_FRM_SIZE * MPEG_MIN_NCH) * (uint64_t) (2);	/* 2 = (16bit/8) */
+		break;
+	case MEDIA_FORMAT_FLAC:
+		buffersize = (FLAC_MAX_FRM_SIZE * MPEG_MIN_NCH) * (uint64_t) (2);	/* 2 = (16bit/8) */
+		break;
+	case MEDIA_FORMAT_WMAV1:
+	case MEDIA_FORMAT_WMAV2:
+	case MEDIA_FORMAT_WMAPRO:
+	case MEDIA_FORMAT_WMALSL:
+		buffersize = (WMA_MAX_FRM_SIZE * WMA_MAX_NCH) * (uint64_t) (2);	/* 2 = (16bit/8) */
 		break;
 	default:
 		LOGE("Not supported format\n");
@@ -484,6 +505,21 @@ static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s * pkt)
 
 	LOGD("format 0x%x, buffersize %llu\n", pkt->format->mimetype, buffersize);
 
+	return buffersize;
+}
+
+#define TXT_MAX_FRM_SIZE (2048)
+static uint64_t _pkt_calculate_text_buffer_size(media_packet_s * pkt)
+{
+	uint64_t buffersize = 0;
+	switch (pkt->format->mimetype) {
+	case MEDIA_FORMAT_TEXT_MP4:
+		buffersize = TXT_MAX_FRM_SIZE;
+		break;
+	default:
+		LOGE("Not supported text format\n");
+		return 0;
+	}
 	return buffersize;
 }
 
@@ -871,6 +907,24 @@ int media_packet_is_audio(media_packet_h packet, bool * is_audio)
 	return ret;
 }
 
+int media_packet_is_text(media_packet_h packet, bool * is_text)
+{
+	media_packet_s *handle;
+	int ret = MEDIA_PACKET_ERROR_NONE;
+
+	MEDIA_PACKET_INSTANCE_CHECK(packet);
+	MEDIA_PACKET_NULL_ARG_CHECK(is_text);
+
+	handle = (media_packet_s *) packet;
+
+	if (MEDIA_FORMAT_IS_TEXT(handle->format))
+		*is_text = true;
+	else
+		*is_text = false;
+
+	return ret;
+}
+
 int media_packet_is_encoded(media_packet_h packet, bool * is_encoded)
 {
 	media_packet_s *handle;
@@ -1208,6 +1262,31 @@ int media_packet_get_codec_data(media_packet_h packet, void **codec_data, unsign
 		LOGE("There is no codec data..\n");
 		ret = MEDIA_PACKET_ERROR_INVALID_OPERATION;
 	}
+
+	return ret;
+}
+
+int media_packet_set_codec_data(media_packet_h packet, void *codec_data, unsigned int codec_data_size)
+{
+	media_packet_s *handle;
+	int ret = MEDIA_PACKET_ERROR_NONE;
+
+	MEDIA_PACKET_INSTANCE_CHECK(packet);
+
+	handle = (media_packet_s *) packet;
+
+	LOGI("Set: codec data = %p, codec_data_size = %u\n", codec_data, codec_data_size);
+
+	handle->codec_data = (void *)malloc(codec_data_size);
+	if (handle->codec_data != NULL) {
+		memset(handle->codec_data, 0, codec_data_size);
+	} else {
+		LOGE("[%s] MEDIA_PACKET_ERROR_OUT_OF_MEMORY(0x%08x)", __FUNCTION__, MEDIA_PACKET_ERROR_OUT_OF_MEMORY);
+		return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
+	}
+
+	memcpy(handle->codec_data, codec_data, codec_data_size);
+	handle->codec_data_size = codec_data_size;
 
 	return ret;
 }

@@ -100,17 +100,39 @@ typedef enum {
 	MEDIA_FORMAT_WMAPRO = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x10A2),		   /**< media format mime type is WMAVPRO,  AUDIO, (Since 2.4) */
 	MEDIA_FORMAT_WMALSL = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x10A3),		   /**< media format mime type is WMAVLSL,  AUDIO, (Since 2.4) */
 
-	MEDIA_FORMAT_PCM = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1510),			   /**< media format mime type is PCM, AUDIO*/
-	MEDIA_FORMAT_PCMA = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1520),			   /**< media format mime type is PCM A-law, AUDIO*/
+	MEDIA_FORMAT_PCM = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1510),			   /**< media format mime type is PCM, AUDIO, indicates MEDIA_FORMAT_PCM_S16LE (Since 3.0) */
+	MEDIA_FORMAT_PCM_S16LE = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1510),		   /**< media format mime type is PCM signed 16-bit little-endian, AUDIO, (Since 3.0) */
+	MEDIA_FORMAT_PCM_S24LE = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1511),		   /**< media format mime type is PCM signed 24-bit little-endian, AUDIO, (Since 3.0) */
+	MEDIA_FORMAT_PCM_S32LE = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1512),		   /**< media format mime type is PCM signed 32-bit little-endian, AUDIO, (Since 3.0) */
+	MEDIA_FORMAT_PCM_S16BE = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1513),		   /**< media format mime type is PCM signed 16-bit big-endian, AUDIO, (Since 3.0) */
+	MEDIA_FORMAT_PCM_S24BE = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1514),		   /**< media format mime type is PCM signed 24-bit big-endian, AUDIO, (Since 3.0) */
+	MEDIA_FORMAT_PCM_S32BE = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1515),		   /**< media format mime type is PCM signed 32-bit big-endian, AUDIO, (Since 3.0) */
+	MEDIA_FORMAT_PCM_F32LE = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1516),		   /**< media format mime type is PCM 32-bit floating point little-endian, AUDIO, (Since 3.0) */
+	MEDIA_FORMAT_PCM_F32BE = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1517),		   /**< media format mime type is PCM 32-bit floating point big-endian, AUDIO, (Since 3.0) */
+	MEDIA_FORMAT_PCMA = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1520),			   /**< media format mime type is PCM A-law, AUDIO */
 	MEDIA_FORMAT_PCMU = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1530),			   /**< media format mime type is PCM U-law, AUDIO */
 
 	/* Video */
 	MEDIA_FORMAT_H261 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2010),		   /**< media format mime type is H261, VIDEO */
 	MEDIA_FORMAT_H263 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2020),		   /**< media format mime type is H263, VIDEO */
 	MEDIA_FORMAT_H263P = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2021),		   /**< media format mime type is H263P, VIDEO */
+	MEDIA_FORMAT_H263_BLP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2022),		  /**< media format mime type is H263 Baseline Profile, VIDEO, (Since 3.0) */
+	MEDIA_FORMAT_H263_H320_CEP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2023),		   /**< media format mime type is H263 H.320 Coding Efficiency Profile, VIDEO, (Since 3.0) */
+	MEDIA_FORMAT_H263_BCP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2024),		  /**< media format mime type is H263 Backward-Compatibility Profile, VIDEO, (Since 3.0) */
+	MEDIA_FORMAT_H263_ISW2P = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2025),			/**< media format mime type is H263 Interactive and Streaming Wireless Profile, VIDEO, (Since 3.0) */
+	MEDIA_FORMAT_H263_ISW3P = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2026),			/**< media format mime type is H263 Interactive and Streaming Wireless Profile, VIDEO, (Since 3.0) */
+	MEDIA_FORMAT_H263_CHCP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2027),		   /**< media format mime type is H263 Conversation High Compression Profile, VIDEO, (Since 3.0) */
+	MEDIA_FORMAT_H263_C_INTERNETP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2028),		  /**< media format mime type is H263 Conversational Internet Profile, VIDEO, (Since 3.0) */
+	MEDIA_FORMAT_H263_C_INTERLACEP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2029),		   /**< media format mime type is H263 Conversational Interlace Profile, VIDEO, (Since 3.0) */
+	MEDIA_FORMAT_H263_HLP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x202A),		  /**< media format mime type is H263 High Latency Profile, VIDEO, (Since 3.0) */
 	MEDIA_FORMAT_H264_SP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2030),	   /**< media format mime type is H264_SP, VIDEO */
 	MEDIA_FORMAT_H264_MP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2031),	   /**< media format mime type is H264_MP, VIDEO */
 	MEDIA_FORMAT_H264_HP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2032),	   /**< media format mime type is H264_HP, VIDEO */
+	MEDIA_FORMAT_H264_EXTP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2033),		 /**< media format mime type is H264 Extended Profile, VIDEO (Since 3.0) */
+	MEDIA_FORMAT_H264_H10P = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2034),		 /**< media format mime type is H264 High10 Profile, VIDEO (Since 3.0) */
+	MEDIA_FORMAT_H264_H422P = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2035),		  /**< media format mime type is H264 High422 Profile, VIDEO (Since 3.0) */
+	MEDIA_FORMAT_H264_H444P = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2036),		  /**< media format mime type is H264 High444 Profile, VIDEO (Since 3.0) */
+	MEDIA_FORMAT_H264_C444P = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2037),		  /**< media format mime type is H264 CAVLC444 Profile, VIDEO (Since 3.0) */
 	MEDIA_FORMAT_MJPEG = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2040),		   /**< media format mime type is MJPEG, VIDEO */
 	MEDIA_FORMAT_MPEG1 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2050),		   /**< media format mime type is MPEG1, VIDEO */
 	MEDIA_FORMAT_MPEG2_SP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2060),	   /**< media format mime type is MPEG2_SP, VIDEO */
@@ -119,6 +141,8 @@ typedef enum {
 	MEDIA_FORMAT_MPEG4_SP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2070),	   /**< media format mime type is MPEG4_SP, VIDEO */
 	MEDIA_FORMAT_MPEG4_ASP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2071),	   /**< media format mime type is MPEG4_ASP, VIDEO */
 	MEDIA_FORMAT_HEVC = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2080),		   /**< media format mime type is HEVC, VIDEO, (Since 2.4) */
+	MEDIA_FORMAT_HEVC_MP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2081),		  /**< media format mime type is HEVC Main Profile, VIDEO, (Since 3.0) */
+	MEDIA_FORMAT_HEVC_M10P = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2082),			/**< media format mime type is HEVC Main10 Profile, VIDEO, (Since 3.0) */
 	MEDIA_FORMAT_VP8 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2090),		   /**< media format mime type is VP8, VIDEO, (Since 2.4) */
 	MEDIA_FORMAT_VP9 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x20A0),		   /**< media format mime type is VP9, VIDEO, (Since 2.4) */
 	MEDIA_FORMAT_VC1 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x20B0),		   /**< media format mime type is VC1, VIDEO, (Since 2.4) */
@@ -150,8 +174,12 @@ typedef enum {
 	MEDIA_FORMAT_CONTAINER_WAV = (MEDIA_FORMAT_CONTAINER | 0x4010),					   /**< media format mime type is WAV container, AUDIO, (Since 3.0) */
 	MEDIA_FORMAT_CONTAINER_OGG = (MEDIA_FORMAT_CONTAINER | 0x4020),					   /**< media format mime type is OGG container, AUDIO, (Since 3.0) */
 	MEDIA_FORMAT_CONTAINER_AAC_ADTS = (MEDIA_FORMAT_CONTAINER | 0x4030),			   /**< media format mime type is AAC_ADTS container, AUDIO, (Since 3.0) */
+	MEDIA_FORMAT_CONTAINER_AAC_ADIF = (MEDIA_FORMAT_CONTAINER | 0x4031),			   /**< media format mime type is AAC_ADIF container, AUDIO, (Since 3.0) */
 
 	MEDIA_FORMAT_NATIVE_VIDEO = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_RAW | 0x7000),	   /**< media format mime type is HW dependent , VIDEO, (Since 2.4) */
+	/* Text */
+	MEDIA_FORMAT_TEXT_MP4 = (MEDIA_FORMAT_TEXT | MEDIA_FORMAT_ENCODED | 0x8010),		/**< media format mime type is MP4,  TEXT, (Since 3.0) */
+	MEDIA_FORMAT_TEXT_3GP = (MEDIA_FORMAT_TEXT | MEDIA_FORMAT_ENCODED | 0x8020),		/**< media format mime type is 3GP,  TEXT, (Since 3.0) */
 
 	MEDIA_FORMAT_MAX																   /**< media format mime type is MEDIA_FORMAT_MAX, Do not use */
 } media_format_mimetype_e;
@@ -165,6 +193,28 @@ typedef enum {
 	MEDIA_COLOR_MODEL_RGB,		   /**< media format color model is RGB */
 	MEDIA_COLOR_MODEL_YUV		   /**< media format color model is YUV */
 } media_format_color_model_e;
+
+/**
+ * @brief Enumeration for media format aac header type.
+ * @since_tizen 3.0
+ */
+typedef enum {
+	MEDIA_FORMAT_AAC_HEADER_NONE,		   /**< media format aac header type is RAW, no header */
+	MEDIA_FORMAT_AAC_HEADER_ADTS,		   /**< media format aac header type is ADTS header */
+	MEDIA_FORMAT_AAC_HEADER_ADIF,		   /**< media format aac header type is ADIF header */
+	MEDIA_FORMAT_AAC_HEADER_UNKNOWN,		  /**< media format aac header type is UNKNOWN */
+} media_format_aac_header_type_e;
+
+/**
+ * @brief Enumeration for media format text type.
+ * @since_tizen 3.0
+ */
+typedef enum {
+	MEDIA_FORMAT_TEXT_TYPE_NONE,	/**< media format text type is none */
+	MEDIA_FORMAT_TEXT_TYPE_TIMED_TEXT_MP4,	  /**< media format text type is MPEG-4 Timed Text */
+	MEDIA_FORMAT_TEXT_TYPE_TIMED_TEXT_3GPP,	   /**< media format text type is 3GPP Timed Text */
+	MEDIA_FORMAT_TEXT_TYPE_UNKNOWN,	   /**< media format text type is unknown */
+} media_format_text_type_e;
 
 /**
  * @brief Creates a media format
@@ -212,6 +262,23 @@ int media_format_get_type(media_format_h fmt, media_format_type_e * formattype);
  * @see media_format_set_container_mime()
  */
 int media_format_get_container_mime(media_format_h fmt, media_format_mimetype_e * mimetype);
+
+/**
+ * @brief Gets text track information of media format
+ * @since_tizen 3.0
+ * @details   returns mimetype
+ * @param[in] fmt The media_format_h to get text information
+ * @param[out] mimetype The media_format_mimetype_e , ex) MEDIA_FORMAT_TEXT_MP4
+ * @param[out] type The media_format_text_type_e
+ *
+ * @return @c 0 on success,
+ *         otherwise a negative error value
+ * @retval #MEDIA_FORMAT_ERROR_NONE Successful
+ * @retval #MEDIA_FORMAT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_FORMAT_ERROR_INVALID_OPERATION Invalid operation
+ * @see media_format_set_text_mime()
+ */
+int media_format_get_text_info(media_format_h fmt, media_format_mimetype_e * mimetype, media_format_text_type_e * type);
 
 /**
  * @brief Gets video information of media format
@@ -277,6 +344,21 @@ int media_format_get_audio_info(media_format_h fmt, media_format_mimetype_e * mi
 int media_format_get_audio_aac_type(media_format_h fmt, bool * is_adts);
 
 /**
+ * @brief Gets audio aac header type of media format
+ * @since_tizen 3.0
+ * @param[in] fmt The media_format_h to get audio information
+ * @param[out] aac_header_type The media_format_aac_header_type_e, ex) MEDIA_FORMAT_AAC_HEADER_ADTS
+ *
+ * @return @c 0 on success,
+ *         otherwise a negative error value
+ * @retval #MEDIA_FORMAT_ERROR_NONE Successful
+ * @retval #MEDIA_FORMAT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_FORMAT_ERROR_INVALID_OPERATION Invalid operation
+ * @see media_format_set_audio_aac_header_type()
+ */
+int media_format_get_audio_aac_header_type(media_format_h fmt, media_format_aac_header_type_e * aac_header_type);
+
+/**
  * @brief Gets video frame rate of media format
  * @since_tizen 3.0
  * @param[in] fmt The media_format_h to get
@@ -304,6 +386,34 @@ int media_format_get_video_frame_rate(media_format_h fmt, int *frame_rate);
  * @see media_format_get_container_mime()
  */
 int media_format_set_container_mime(media_format_h fmt, media_format_mimetype_e mimetype);
+
+/**
+ * @brief Sets text  MIME type of media format
+ * @since_tizen 3.0
+ * @param[in] fmt The media_format_h to set
+ * @param[in] mimetype The media_format_mimetype_e, ex) MEDIA_FORMAT_TEXT*
+ * @return @c 0 on success,
+ *         otherwise a negative error value
+ * @retval #MEDIA_FORMAT_ERROR_NONE Successful
+ * @retval #MEDIA_FORMAT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_FORMAT_ERROR_INVALID_OPERATION Invalid operation
+ * @see media_format_get_text_info()
+ */
+int media_format_set_text_mime(media_format_h fmt, media_format_mimetype_e mimetype);
+
+/**
+ * @brief Sets text type of media format
+ * @since_tizen 3.0
+ * @param[in] fmt The media_format_h to set
+ * @param[in] type The text type
+ * @return @c 0 on success,
+ *         otherwise a negative error value
+ * @retval #MEDIA_FORMAT_ERROR_NONE Successful
+ * @retval #MEDIA_FORMAT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_FORMAT_ERROR_INVALID_OPERATION Invalid operation
+ * @see media_format_get_text_info()
+ */
+int media_format_set_text_type(media_format_h fmt, media_format_text_type_e type);
 
 /**
  * @brief Sets video MIME type of media format
@@ -504,6 +614,21 @@ int media_format_set_audio_avg_bps(media_format_h fmt, int avg_bps);
  * @see media_format_get_audio_aac_type()
  */
 int media_format_set_audio_aac_type(media_format_h fmt, bool is_adts);
+
+/**
+ * @brief Sets audio aac header type of media format
+ * @since_tizen 3.0
+ * @param[in] fmt The media_format_h to get audio information
+ * @param[in] aac_header_type The media_format_aac_header_type_e, ex) MEDIA_FORMAT_AAC_HEADER_ADTS
+ *
+ * @return @c 0 on success,
+ *         otherwise a negative error value
+ * @retval #MEDIA_FORMAT_ERROR_NONE Successful
+ * @retval #MEDIA_FORMAT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_FORMAT_ERROR_INVALID_OPERATION Invalid operation
+ * @see media_format_get_audio_aac_header_type()
+ */
+int media_format_set_audio_aac_header_type(media_format_h fmt, media_format_aac_header_type_e aac_header_type);
 
 /**
  * @brief Increase reference count of media_format_h object
