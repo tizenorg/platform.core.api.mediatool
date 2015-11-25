@@ -99,6 +99,27 @@ int media_format_get_container_mime(media_format_h fmt, media_format_mimetype_e 
 	return ret;
 }
 
+int media_format_get_text_info(media_format_h fmt, media_format_mimetype_e * mimetype, media_format_text_type_e * type)
+{
+	int ret = MEDIA_FORMAT_ERROR_NONE;
+	MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+
+	media_format_s *fmt_handle;
+	fmt_handle = (media_format_s *) fmt;
+
+	if (!(fmt_handle->mimetype & MEDIA_FORMAT_TEXT)) {
+		LOGE("The format handle is not for MEDIA_FORMAT_TEXT..\n");
+		return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+	}
+
+	if (mimetype)
+		*mimetype = fmt_handle->mimetype;
+	if (type)
+		*type = fmt_handle->detail.text.type;
+
+	return ret;
+}
+
 int media_format_get_video_info(media_format_h fmt, media_format_mimetype_e * mimetype, int *width, int *height, int *avg_bps, int *max_bps)
 {
 	int ret = MEDIA_FORMAT_ERROR_NONE;
@@ -171,6 +192,26 @@ int media_format_get_audio_aac_type(media_format_h fmt, bool * is_adts)
 	return ret;
 }
 
+int media_format_get_audio_aac_header_type(media_format_h fmt, media_format_aac_header_type_e * aac_header_type)
+{
+
+	int ret = MEDIA_FORMAT_ERROR_NONE;
+	MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+
+	media_format_s *fmt_handle;
+	fmt_handle = (media_format_s *) fmt;
+
+	if (!(fmt_handle->mimetype == MEDIA_FORMAT_AAC_LC || fmt_handle->mimetype == MEDIA_FORMAT_AAC_HE || fmt_handle->mimetype == MEDIA_FORMAT_AAC_HE_PS)) {
+		LOGE("The format handle is not aac format..\n");
+		return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+	}
+
+	if (aac_header_type)
+		*aac_header_type = fmt_handle->detail.audio.aac_header_type;
+
+	return ret;
+}
+
 int media_format_get_video_frame_rate(media_format_h fmt, int *frame_rate)
 {
 	int ret = MEDIA_FORMAT_ERROR_NONE;
@@ -208,6 +249,50 @@ int media_format_set_container_mime(media_format_h fmt, media_format_mimetype_e 
 	}
 
 	fmt_handle->mimetype = mimetype;
+
+	return ret;
+}
+
+int media_format_set_text_mime(media_format_h fmt, media_format_mimetype_e mimetype)
+{
+	int ret = MEDIA_FORMAT_ERROR_NONE;
+	MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+
+	if (!MEDIA_FORMAT_IS_WRITABLE(fmt)) {
+		LOGE("The format can not be changed..\n", __FUNCTION__);
+		return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+	}
+
+	media_format_s *fmt_handle;
+	fmt_handle = (media_format_s *) fmt;
+
+	if (!(mimetype & MEDIA_FORMAT_TEXT)) {
+		return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
+	}
+
+	fmt_handle->mimetype = mimetype;
+
+	return ret;
+}
+
+int media_format_set_text_type(media_format_h fmt, media_format_text_type_e type)
+{
+	int ret = MEDIA_FORMAT_ERROR_NONE;
+	MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+
+	if (!MEDIA_FORMAT_IS_WRITABLE(fmt)) {
+		LOGE("The format can not be changed..\n", __FUNCTION__);
+		return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+	}
+
+	media_format_s *fmt_handle;
+	fmt_handle = (media_format_s *) fmt;
+
+	if (!(fmt_handle->mimetype & MEDIA_FORMAT_TEXT)) {
+		return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
+	}
+
+	fmt_handle->detail.text.type = type;
 
 	return ret;
 }
@@ -489,6 +574,30 @@ int media_format_set_audio_aac_type(media_format_h fmt, bool is_adts)
 	}
 
 	fmt_handle->detail.audio.is_adts = is_adts;
+
+	return ret;
+}
+
+int media_format_set_audio_aac_header_type(media_format_h fmt, media_format_aac_header_type_e aac_header_type)
+{
+
+	int ret = MEDIA_FORMAT_ERROR_NONE;
+	MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+
+	if (!MEDIA_FORMAT_IS_WRITABLE(fmt)) {
+		LOGE("the format can not be changed..\n", __FUNCTION__);
+		return MEDIA_FORMAT_ERROR_INVALID_OPERATION;
+	}
+
+	media_format_s *fmt_handle;
+	fmt_handle = (media_format_s *) fmt;
+
+	if (!(fmt_handle->mimetype & MEDIA_FORMAT_AUDIO)) {
+		LOGE("The format handle is not for MEDIA_FORMAT_AUDIO..\n");
+		return MEDIA_FORMAT_ERROR_INVALID_PARAMETER;
+	}
+
+	fmt_handle->detail.audio.aac_header_type = aac_header_type;
 
 	return ret;
 }
