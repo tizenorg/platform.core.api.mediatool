@@ -375,7 +375,7 @@ static uint64_t _pkt_calculate_video_buffer_size(media_packet_s * pkt)
 		stride2 = _ROUND_UP_16(w2);
 		h2 = _DIV_ROUND_UP_X(height, y_chroma_shift);
 		size2 = stride2 * h2;
-		buffersize = size + 2 * size2;
+		buffersize = (uint64_t)size + 2 * (uint64_t)size2;
 		break;
 	case MEDIA_FORMAT_YUYV:
 	case MEDIA_FORMAT_UYVY:
@@ -384,19 +384,19 @@ static uint64_t _pkt_calculate_video_buffer_size(media_packet_s * pkt)
 	case MEDIA_FORMAT_422P:
 		stride = _ROUND_UP_16(width * 2);
 		size = stride * height;
-		buffersize = size;
+		buffersize = (uint64_t)size;
 		break;
 	case MEDIA_FORMAT_RGB888:
 		stride = _ROUND_UP_16(width * 3);
 		size = stride * height;
-		buffersize = size;
+		buffersize = (uint64_t)size;
 		break;
 	case MEDIA_FORMAT_ARGB:
 	case MEDIA_FORMAT_RGBA:
 	case MEDIA_FORMAT_BGRA:
 		stride = width * 4;
 		size = stride * height;
-		buffersize = size;
+		buffersize = (uint64_t)size;
 		break;
 	case MEDIA_FORMAT_NV12:
 	case MEDIA_FORMAT_NV12T:
@@ -423,7 +423,7 @@ static uint64_t _pkt_calculate_video_buffer_size(media_packet_s * pkt)
 		stride2 = _ROUND_UP_16(w2);
 		h2 = _DIV_ROUND_UP_X(height, y_chroma_shift);
 		size2 = stride2 * h2;
-		buffersize = size + size2;
+		buffersize = (uint64_t)size + (uint64_t)size2;
 		break;
 	default:
 		LOGE("Not supported format\n");

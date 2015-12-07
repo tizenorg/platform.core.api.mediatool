@@ -47,7 +47,10 @@ int media_format_create(media_format_h * fmt)
 
 static void _media_format_destroy(media_format_s * fmt)
 {
-	MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+	if (!fmt) {
+		LOGE("[%s] %s", __FUNCTION__, "MEDIA_FORMAT_ERROR_INVALID_PARAMETER");
+		return;
+	}
 
 	free(fmt);
 	fmt = NULL;
