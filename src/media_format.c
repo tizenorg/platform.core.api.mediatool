@@ -47,7 +47,7 @@ int media_format_create(media_format_h * fmt)
 
 static void _media_format_destroy(media_format_s * fmt)
 {
-	MEDIA_FORMAT_INSTANCE_CHECK(fmt);
+	MEDIA_FORMAT_INSTANCE_CHEC_VOID (fmt);
 
 	free(fmt);
 	fmt = NULL;
