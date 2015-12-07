@@ -493,13 +493,14 @@ static void _media_packet_copy(void)
             g_print("media_packet_copy sucess !!");
             is_only_created_handle = true;
             memset (g_media_packet[0], 0, sizeof(media_packet_s));
+			if(!g_media_packet[1])
+			{
+				g_print("g_media_packet[1] is NULL\n");
+				return;
+			}
             memcpy (g_media_packet[0], g_media_packet[1], sizeof(media_packet_s));
-            if(g_media_packet[1])
-            {
-                free(g_media_packet[1]);
-                g_media_packet[1] = NULL;
-            }
-
+            free(g_media_packet[1]);
+            g_media_packet[1] = NULL;
         }
         else
         {
@@ -1408,7 +1409,7 @@ static void interpret (char *cmd)
             break;
         case CURRENT_STATUS_DURATION:
             {
-                uint64_t duration = atoi(cmd);
+                uint64_t duration = (uint64_t)atoi(cmd);
                 _media_packet_set_duration(duration);
                 reset_menu_state();
             }
