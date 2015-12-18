@@ -932,22 +932,6 @@ int media_packet_get_video_plane_data_ptr(media_packet_h packet, int plane_idx, 
 int media_packet_get_codec_data(media_packet_h packet, void **codec_data, unsigned int *codec_data_size);
 
 /**
- * @brief Sets codec data and the codec data size of media packet.
- * @since_tizen 3.0
- *
- * @param[in] packet   The media packet handle
- * @param[in] codec_data    The codec data to set
- * @param[in] codec_data_size    The codec data size to set
- *
- * @return @c 0 on success,
- *         otherwise a negative error value
- * @retval #MEDIA_PACKET_ERROR_NONE              Successful
- * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION Invalid operation
- */
-int media_packet_set_codec_data(media_packet_h packet, void *codec_data, unsigned int codec_data_size);
-
-/**
  * @brief Destroys the media packet handle.
  * @details  The registered finalize_callback() function will be invoked to destroy the media packet handle.
  * @since_tizen 2.3
