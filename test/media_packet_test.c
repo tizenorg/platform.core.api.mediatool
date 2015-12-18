@@ -46,6 +46,9 @@ enum
     CURRENT_STATUS_FORMAT_SET_AUDIO_BIT,
     CURRENT_STATUS_FORMAT_SET_AUDIO_AVG_BPS,
     CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_TYPE,
+    CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_HEADER_TYPE,
+    CURRENT_STATUS_FORMAT_SET_TEXT_MIME,
+    CURRENT_STATUS_FORMAT_SET_TEXT_TYPE,
 };
 
 
@@ -112,6 +115,7 @@ static void _media_format_set_video_mime(int num)
     else
     {
         g_print("Invalid number...\n");
+		return;
     }
 
     if (ret == MEDIA_FORMAT_ERROR_NONE)
@@ -185,6 +189,7 @@ static void _media_format_set_audio_mime(int num)
     else
     {
         g_print("Invalid number...\n");
+		return;
     }
 
     if (ret == MEDIA_FORMAT_ERROR_NONE)
@@ -249,6 +254,88 @@ static void _media_format_set_audio_aac_type(bool is_adts)
         g_print("media_format_set_audio_aac_type is failed...!!\n");
 }
 
+static void _media_format_set_audio_aac_header_type(int aac_header_type)
+{
+	int ret;
+	if (aac_header_type < 0 || aac_header_type > 2)
+	{
+		g_print("invalid number...\n");
+	    return;
+    }
+	ret = media_format_set_audio_aac_header_type(g_media_format[media_format_idx], aac_header_type);
+
+	if (ret == MEDIA_FORMAT_ERROR_NONE)
+		g_print("media_format_set_audio_aac_header_type is succeeded!! \n");
+	else
+		g_print("media_format_set_audio_aac_header_type is failed!! \n");
+}
+
+static void _media_format_get_audio_aac_header_type()
+{
+    int ret;
+    media_format_aac_header_type_e aac_header_type;
+    ret = media_format_get_audio_aac_header_type(g_media_format[0], &aac_header_type);
+    if (ret == MEDIA_FORMAT_ERROR_NONE)
+    {
+        g_print("media_format_get_audio_aac_header_type is succeded!! \n");
+        g_print("media_format_aac_header_type_e : %d\n", aac_header_type);
+    }
+    else
+        g_print("media_format_get_audio_aac_header_type is failed!! \n");
+}
+
+static void _media_format_set_text_mime(int num)
+{
+    int ret;
+    if (num == 0)
+    {
+        ret = media_format_set_text_mime(g_media_format[media_format_idx], MEDIA_FORMAT_TEXT_MP4);
+    }
+    else if (num == 1)
+    {
+        ret = media_format_set_text_mime(g_media_format[media_format_idx], MEDIA_FORMAT_TEXT_3GP);
+    }
+    else
+    {
+        g_print("Invalid number...\n");
+		return;
+    }
+
+    if (ret == MEDIA_FORMAT_ERROR_NONE)
+        g_print("media_format_set_text_mime is succeeded!!\n");
+    else
+        g_print("media_format_set_text_mime is failed...!!\n");
+
+}
+
+static void _media_format_set_text_type(int num)
+{
+    int ret;
+    if (num == 0)
+    {
+        ret = media_format_set_text_type(g_media_format[media_format_idx], MEDIA_FORMAT_TEXT_TYPE_NONE);
+    }
+    else if (num == 1)
+    {
+        ret = media_format_set_text_type(g_media_format[media_format_idx], MEDIA_FORMAT_TEXT_TYPE_TIMED_TEXT_3GPP);
+    }
+	else if (num == 2)
+	{
+		ret = media_format_set_text_type(g_media_format[media_format_idx], MEDIA_FORMAT_TEXT_TYPE_TIMED_TEXT_MP4);
+	}
+    else
+    {
+        g_print("Invalid number...\n");
+		return;
+    }
+
+    if (ret == MEDIA_FORMAT_ERROR_NONE)
+        g_print("media_format_set_text_type is succeeded!!\n");
+    else
+        g_print("media_format_set_text_type is failed...!!\n");
+
+
+}
 static void _create_format_320_240_es(void)
 {
 
@@ -755,6 +842,20 @@ static void _media_packet_is_audio(void)
     }
 }
 
+static void _media_packet_is_text(void)
+{
+    bool is_text;
+    if (media_packet_is_text(g_media_packet[0], &is_text) == MEDIA_PACKET_ERROR_NONE)
+    {
+        g_print("media_packet_is_text sucess!!\n");
+        g_print("\t\t[media_packet]===> is_text = %d", is_text);
+    }
+    else
+    {
+        g_print("media_packet_is_text is failed...");
+    }
+}
+
 static void _media_packet_is_encoded(void)
 {
     bool is_encoded;
@@ -922,12 +1023,29 @@ static void _media_format_get_audio_info(void)
     if (media_format_get_audio_info(g_media_format[0], &mime, &channel, &samplerate, &bit, &avg_bps)== MEDIA_FORMAT_ERROR_NONE)
     {
         g_print("media_format_get_audio_info is sucess!\n");
-        g_print("\t\t[media_format_get_audio_info]mime:0x%x, channel :%d, samplerate :%d, bit: %d, avg_bps:%d, is_adts:%d \n", mime, channel, samplerate, bit, avg_bps);
+        g_print("\t\t[media_format_get_audio_info]mime:0x%x, channel :%d, samplerate :%d, bit: %d, avg_bps:%d \n", mime, channel, samplerate, bit, avg_bps);
         g_print("packet format ref_count: %d", MEDIA_FORMAT_GET_REFCOUNT(g_media_format[0]));
     }
     else
     {
         g_print("media_format_get_audio_info is failed..");
+    }
+}
+
+static void _media_format_get_text_info(void)
+{
+    media_format_mimetype_e mime;
+    media_format_text_type_e type;
+
+    if (media_format_get_text_info(g_media_format[0], &mime, &type)== MEDIA_FORMAT_ERROR_NONE)
+    {
+        g_print("_media_format_get_text_info is sucess!\n");
+        g_print("\t\t[_media_format_get_text_info]mime:0x%x, type: %d \n", mime, type);
+        g_print("packet format ref_count: %d", MEDIA_FORMAT_GET_REFCOUNT(g_media_format[0]));
+    }
+    else
+    {
+        g_print("_media_format_get_text_info is failed..");
     }
 }
 
@@ -1056,6 +1174,10 @@ void _interpret_main_menu(char *cmd)
         {
             _media_packet_is_audio();
         }
+        else if (strncmp(cmd, "it", 2) == 0)
+        {
+            _media_packet_is_text();
+        }
         else if (strncmp(cmd, "ie", 2) == 0)
         {
             _media_packet_is_encoded();
@@ -1120,6 +1242,10 @@ void _interpret_main_menu(char *cmd)
         {
             _media_format_get_audio_info();
         }
+        else if (strncmp(cmd, "fgt", 3) == 0)
+        {
+            _media_format_get_text_info();
+        }
         else if (strncmp(cmd, "svm", 3) == 0)
         {
             g_menu_state = CURRENT_STATUS_FORMAT_SET_VIDEO_MIME;
@@ -1148,6 +1274,14 @@ void _interpret_main_menu(char *cmd)
         {
             g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_BIT;
         }
+        else if (strncmp(cmd, "stm", 3) == 0)
+        {
+            g_menu_state = CURRENT_STATUS_FORMAT_SET_TEXT_MIME;
+        }
+        else if (strncmp(cmd, "stt", 3) == 0)
+        {
+            g_menu_state = CURRENT_STATUS_FORMAT_SET_TEXT_TYPE;
+        }
         else if (strncmp(cmd, "gnp", 3) == 0)
         {
             _media_packet_get_number_of_video_planes();
@@ -1172,7 +1306,6 @@ void _interpret_main_menu(char *cmd)
         {
             _media_packet_get_codec_data();
         }
-
     }
     else if (len == 4)
     {
@@ -1201,6 +1334,20 @@ void _interpret_main_menu(char *cmd)
             g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_TYPE;
         }
     }
+	else if (len == 5)
+	{
+		if (strncmp(cmd, "saaht", 5) == 0)
+		{
+			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_HEADER_TYPE;
+		}
+	}
+	else if (len == 6)
+	{
+		if (strncmp(cmd, "fgaaht", 6) == 0)
+		{
+            _media_format_get_audio_aac_header_type();
+		}
+	}
 
 
 }
@@ -1271,6 +1418,26 @@ static void displaymenu(void)
     {
         g_print("input audio aac type (0 or 1):\n");
     }
+	else if (g_menu_state == CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_HEADER_TYPE)
+	{
+		g_print("input audio aac header type\n");
+		g_print("0. MEDIA_FORMAT_AAC_HEADER_NONE \n");
+		g_print("1. MEDIA_FORMAT_AAC_HEADER_ADTS\n");
+		g_print("2. MEDIA_FORMAT_AAC_HEADER_ADIF\n");
+	}
+    else if (g_menu_state == CURRENT_STATUS_FORMAT_SET_TEXT_MIME)
+    {
+        g_print("choose text media format mime type\n");
+        g_print("0. MEDIA_FORMAT_TEXT_MP4\n");
+        g_print("1. MEDIA_FORMAT_TEXT_3GP\n");
+    }
+	else if (g_menu_state == CURRENT_STATUS_FORMAT_SET_TEXT_TYPE)
+	{
+        g_print("choose text media format type\n");
+        g_print("0. MEDIA_FORMAT_TEXT_TYPE_NONE \n");
+        g_print("1. MEDIA_FORMAT_TEXT_TYPE_TIMED_TEXT_3GPP \n");
+		g_print("2. MEDIA_FORMAT_TEXT_TYPE_TIMED_TEXT_MP4 \n");
+	}
     else
     {
         g_print("*** unknown status.\n");
@@ -1407,6 +1574,27 @@ static void interpret (char *cmd)
                 reset_menu_state();
             }
             break;
+        case CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_HEADER_TYPE:
+            {
+                int header_type = atoi(cmd);
+                _media_format_set_audio_aac_header_type(header_type);
+                reset_menu_state();
+            }
+            break;
+        case CURRENT_STATUS_FORMAT_SET_TEXT_MIME:
+            {
+                int text_mime_idx = atoi(cmd);
+                _media_format_set_text_mime(text_mime_idx);
+                reset_menu_state();
+            }
+            break;
+        case CURRENT_STATUS_FORMAT_SET_TEXT_TYPE:
+            {
+                int text_type_idx = atoi(cmd);
+                _media_format_set_text_type(text_type_idx);
+                reset_menu_state();
+            }
+            break;
         case CURRENT_STATUS_DURATION:
             {
                 uint64_t duration = (uint64_t)atoi(cmd);
@@ -1444,10 +1632,17 @@ void display_sub_basic()
     g_print("sas. media_format_set_audio_samplerate\t");
     g_print("sab. media_format_set_audio_bit \t");
     g_print("saab. media_format_set_audio_avg_bps\t");
-    g_print("saat. media_format_set_audio_aac_type\t");
+    g_print("\n");
+    g_print("saat. media_format_set_audio_aac_type \t");
+    g_print("saaht. media_format_set_audio_aac_header_type\t");
+    g_print("\n");
+    g_print("stm. media_format_set_text_mime \t");
+    g_print("stt. media_format_set_text_type\t");
     g_print("\n");
     g_print("fgv. media_format_get_video_info \t");
-    g_print("fga. media_format_get_audio_info \t\t");
+    g_print("fga. media_format_get_audio_info \t");
+    g_print("fgt. media_format_get_text_info \t");
+    g_print("fgaaht. media_format_get_audio_aac_header_type \t");
     g_print("\n");
     g_print("\n");
     g_print("a. media_packet_create_alloc(+media_format_unref)  \t");
@@ -1459,6 +1654,7 @@ void display_sub_basic()
     g_print("\n");
     g_print("iv. media_packet_is_video \t");
     g_print("ia. media_packet_is_audio \t");
+    g_print("it. media_packet_is_text \t");
     g_print("ie. media_packet_is_encoded \t");
     g_print("ir. media_packet_is_raw \t");
     g_print("ht. media_packet_has_tbm_surface_buffer \t");
