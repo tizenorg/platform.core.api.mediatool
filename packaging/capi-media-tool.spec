@@ -13,10 +13,6 @@ BuildRequires:  pkgconfig(elementary)
 BuildRequires:  pkgconfig(appcore-efl)
 BuildRequires:  pkgconfig(libtbm)
 
-Requires(post): /sbin/ldconfig
-Requires(post): libprivilege-control
-Requires(postun): /sbin/ldconfig
-
 %description
 A Core API media tool library in Tizen Native API
 
