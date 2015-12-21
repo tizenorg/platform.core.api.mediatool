@@ -32,7 +32,7 @@ int media_packet_set_codec_data(media_packet_h packet, void *codec_data, unsigne
 
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	LOGI("Set: codec data = %p, codec_data_size = %u\n", codec_data, codec_data_size);
 
