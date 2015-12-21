@@ -27,10 +27,10 @@
 /* NOTE : static internal functions does not check anything on incomming parameters
  * Caller should takecare it
  */
-static int _pkt_alloc_buffer(media_packet_s * pkt);
-static uint64_t _pkt_calculate_video_buffer_size(media_packet_s * pkt);
-static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s * pkt);
-static uint64_t _pkt_calculate_text_buffer_size(media_packet_s * pkt);
+static int _pkt_alloc_buffer(media_packet_s *pkt);
+static uint64_t _pkt_calculate_video_buffer_size(media_packet_s *pkt);
+static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s *pkt);
+static uint64_t _pkt_calculate_text_buffer_size(media_packet_s *pkt);
 static uint32_t _convert_to_tbm_surface_format(media_format_mimetype_e format_type);
 static void *_aligned_malloc_normal_buffer_type(uint64_t size, int alignment);
 static void _aligned_free_normal_buffer_type(void *buffer_ptr);
@@ -52,7 +52,7 @@ int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, 
 		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 	}
 
-	handle = (media_packet_s *) malloc(sizeof(media_packet_s));
+	handle = (media_packet_s *)malloc(sizeof(media_packet_s));
 	if (handle != NULL)
 		memset(handle, 0, sizeof(media_packet_s));
 	else {
@@ -66,11 +66,10 @@ int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, 
 	/* check if tbm surface is needed.
 	 * This time, Only raw video format is considered to be allocated in TBM
 	 */
-	if (MEDIA_FORMAT_IS_VIDEO(fmt) && MEDIA_FORMAT_IS_RAW(fmt)) {
+	if (MEDIA_FORMAT_IS_VIDEO(fmt) && MEDIA_FORMAT_IS_RAW(fmt))
 		handle->type = MEDIA_BUFFER_TYPE_TBM_SURFACE;
-	} else {
+	else
 		handle->type = MEDIA_BUFFER_TYPE_NORMAL;
-	}
 
 	/* take fmt */
 	handle->format = MEDIA_FORMAT_CAST(fmt);
@@ -127,7 +126,7 @@ int media_packet_create(media_format_h fmt, media_packet_finalize_cb fcb, void *
 	}
 	/* TODO : need more validation on fmt */
 
-	handle = (media_packet_s *) malloc(sizeof(media_packet_s));
+	handle = (media_packet_s *)malloc(sizeof(media_packet_s));
 	if (handle != NULL)
 		memset(handle, 0, sizeof(media_packet_s));
 	else {
@@ -140,11 +139,10 @@ int media_packet_create(media_format_h fmt, media_packet_finalize_cb fcb, void *
 	/* check if tbm surface is needed.
 	 * This time, Only raw video format is considered to be allocated in TBM
 	 */
-	if (MEDIA_FORMAT_IS_VIDEO(fmt) && MEDIA_FORMAT_IS_RAW(fmt)) {
+	if (MEDIA_FORMAT_IS_VIDEO(fmt) && MEDIA_FORMAT_IS_RAW(fmt))
 		handle->type = MEDIA_BUFFER_TYPE_TBM_SURFACE;
-	} else {
+	else
 		handle->type = MEDIA_BUFFER_TYPE_NORMAL;
-	}
 
 	/* take fmt */
 	handle->format = MEDIA_FORMAT_CAST(fmt);
@@ -176,9 +174,9 @@ int media_packet_copy(media_packet_h org_packet, media_packet_finalize_cb fcb, v
 	MEDIA_PACKET_INSTANCE_CHECK(org_packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(new_packet);
 
-	org_handle = (media_packet_s *) org_packet;
+	org_handle = (media_packet_s *)org_packet;
 
-	handle = (media_packet_s *) malloc(sizeof(media_packet_s));
+	handle = (media_packet_s *)malloc(sizeof(media_packet_s));
 	if (handle != NULL)
 		memset(handle, 0, sizeof(media_packet_s));
 	else {
@@ -217,7 +215,7 @@ int media_packet_alloc(media_packet_h packet)
 
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	/* alloc buffer */
 	int err = _pkt_alloc_buffer(handle);
@@ -242,7 +240,7 @@ int media_packet_alloc(media_packet_h packet)
 
 }
 
-int _pkt_alloc_buffer(media_packet_s * pkt)
+int _pkt_alloc_buffer(media_packet_s *pkt)
 {
 	/* skip validating pkt */
 	uint64_t buffersize = 0;
@@ -262,23 +260,20 @@ int _pkt_alloc_buffer(media_packet_s * pkt)
 		/* need to use format,width,height to get buffer size */
 		if (MEDIA_FORMAT_IS_VIDEO(pkt->format)) {
 			buffersize = _pkt_calculate_video_buffer_size(pkt);
-			// 16bytes aligned malloc
+			/* 16bytes aligned malloc */
 			pkt->data = _aligned_malloc_normal_buffer_type(buffersize, 16);
-			if (!pkt->data) {
+			if (!pkt->data)
 				return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
-			}
 		} else if (MEDIA_FORMAT_IS_AUDIO(pkt->format)) {
 			buffersize = _pkt_calculate_audio_buffer_size(pkt);
 			pkt->data = (void *)malloc(buffersize);
-			if (!pkt->data) {
+			if (!pkt->data)
 				return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
-			}
 		} else {
 			buffersize = _pkt_calculate_text_buffer_size(pkt);
 			pkt->data = (void *)malloc(buffersize);
-			if (!pkt->data) {
+			if (!pkt->data)
 				return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
-			}
 		}
 		pkt->size = buffersize;
 	} else if (pkt->type == MEDIA_BUFFER_TYPE_TBM_SURFACE) {
@@ -346,7 +341,7 @@ int _pkt_alloc_buffer(media_packet_s * pkt)
 #define _ROUND_UP_X(v, x) (((v) + _GEN_MASK(x)) & ~_GEN_MASK(x))
 #define _DIV_ROUND_UP_X(v, x) (((v) + _GEN_MASK(x)) >> (x))
 #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
-static uint64_t _pkt_calculate_video_buffer_size(media_packet_s * pkt)
+static uint64_t _pkt_calculate_video_buffer_size(media_packet_s *pkt)
 {
 	unsigned char x_chroma_shift = 0;
 	unsigned char y_chroma_shift = 0;
@@ -455,7 +450,7 @@ static uint64_t _pkt_calculate_video_buffer_size(media_packet_s * pkt)
 #define AMR_MAX_NCH                  (1)
 #define WMA_MAX_NCH                  (2)
 
-static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s * pkt)
+static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s *pkt)
 {
 	int channel = 0;
 	int bit = 0;
@@ -504,7 +499,7 @@ static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s * pkt)
 }
 
 #define TXT_MAX_FRM_SIZE (2048)
-static uint64_t _pkt_calculate_text_buffer_size(media_packet_s * pkt)
+static uint64_t _pkt_calculate_text_buffer_size(media_packet_s *pkt)
 {
 	uint64_t buffersize = 0;
 	switch (pkt->format->mimetype) {
@@ -518,7 +513,7 @@ static uint64_t _pkt_calculate_text_buffer_size(media_packet_s * pkt)
 	return buffersize;
 }
 
-int media_packet_create_from_tbm_surface(media_format_h fmt, tbm_surface_h surface, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h * packet)
+int media_packet_create_from_tbm_surface(media_format_h fmt, tbm_surface_h surface, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet)
 {
 	media_packet_s *handle;
 	int ret = MEDIA_PACKET_ERROR_NONE;
@@ -534,7 +529,7 @@ int media_packet_create_from_tbm_surface(media_format_h fmt, tbm_surface_h surfa
 		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 	}
 
-	handle = (media_packet_s *) malloc(sizeof(media_packet_s));
+	handle = (media_packet_s *)malloc(sizeof(media_packet_s));
 	if (handle != NULL) {
 		memset(handle, 0, sizeof(media_packet_s));
 	} else {
@@ -586,7 +581,7 @@ int media_packet_create_from_tbm_surface(media_format_h fmt, tbm_surface_h surfa
 	return ret;
 }
 
-int media_packet_create_from_external_memory(media_format_h fmt, void *mem_ptr, uint64_t size, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h * packet)
+int media_packet_create_from_external_memory(media_format_h fmt, void *mem_ptr, uint64_t size, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet)
 {
 	media_packet_s *handle;
 	int ret = MEDIA_PACKET_ERROR_NONE;
@@ -610,7 +605,7 @@ int media_packet_create_from_external_memory(media_format_h fmt, void *mem_ptr, 
 		return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
 	}
 
-	handle = (media_packet_s *) malloc(sizeof(media_packet_s));
+	handle = (media_packet_s *)malloc(sizeof(media_packet_s));
 	if (handle != NULL) {
 		memset(handle, 0, sizeof(media_packet_s));
 	} else {
@@ -652,7 +647,7 @@ int media_packet_get_buffer_data_ptr(media_packet_h packet, void **data)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(data);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	*data = handle->data;
 
@@ -667,7 +662,7 @@ int media_packet_get_tbm_surface(media_packet_h packet, tbm_surface_h * surface)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(surface);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	*surface = (tbm_surface_h) handle->surface_data;
 
@@ -682,7 +677,7 @@ int media_packet_get_format(media_packet_h packet, media_format_h * fmt)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(fmt);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	/* ref exist format */
 	media_format_ref((media_format_h) handle->format);
@@ -700,7 +695,7 @@ int media_packet_set_format(media_packet_h packet, media_format_h fmt)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(fmt);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	/* if trying to set same format,  return */
 	if (handle->format == MEDIA_FORMAT_CAST(fmt)) {
@@ -727,7 +722,7 @@ int media_packet_set_pts(media_packet_h packet, uint64_t pts)
 
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	handle->pts = pts;
 
@@ -741,7 +736,7 @@ int media_packet_set_dts(media_packet_h packet, uint64_t dts)
 
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	handle->dts = dts;
 
@@ -755,7 +750,7 @@ int media_packet_set_duration(media_packet_h packet, uint64_t duration)
 
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	handle->duration = duration;
 
@@ -769,7 +764,7 @@ int media_packet_set_buffer_size(media_packet_h packet, uint64_t size)
 
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	handle->size = size;
 
@@ -784,7 +779,7 @@ int media_packet_get_pts(media_packet_h packet, uint64_t * pts)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(pts);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	*pts = handle->pts;
 
@@ -799,7 +794,7 @@ int media_packet_get_dts(media_packet_h packet, uint64_t * dts)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(dts);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	*dts = handle->dts;
 
@@ -814,7 +809,7 @@ int media_packet_get_duration(media_packet_h packet, uint64_t * duration)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(duration);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	*duration = handle->duration;
 
@@ -829,7 +824,7 @@ int media_packet_get_buffer_size(media_packet_h packet, uint64_t * size)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(size);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	*size = handle->size;
 
@@ -844,7 +839,7 @@ int media_packet_set_extra(media_packet_h packet, void *extra)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(extra);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	handle->extradata = extra;
 
@@ -859,7 +854,7 @@ int media_packet_get_extra(media_packet_h packet, void **extra)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(extra);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	*extra = handle->extradata;
 
@@ -874,7 +869,7 @@ int media_packet_is_video(media_packet_h packet, bool * is_video)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(is_video);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	if (MEDIA_FORMAT_IS_VIDEO(handle->format))
 		*is_video = true;
@@ -892,7 +887,7 @@ int media_packet_is_audio(media_packet_h packet, bool * is_audio)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(is_audio);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	if (MEDIA_FORMAT_IS_AUDIO(handle->format))
 		*is_audio = true;
@@ -910,7 +905,7 @@ int media_packet_is_text(media_packet_h packet, bool * is_text)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(is_text);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	if (MEDIA_FORMAT_IS_TEXT(handle->format))
 		*is_text = true;
@@ -928,7 +923,7 @@ int media_packet_is_encoded(media_packet_h packet, bool * is_encoded)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(is_encoded);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	if (MEDIA_FORMAT_IS_ENCODED(handle->format))
 		*is_encoded = true;
@@ -946,7 +941,7 @@ int media_packet_is_raw(media_packet_h packet, bool * is_raw)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(is_raw);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	if (MEDIA_FORMAT_IS_RAW(handle->format))
 		*is_raw = true;
@@ -964,7 +959,7 @@ int media_packet_get_flags(media_packet_h packet, media_buffer_flags_e * flags)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(flags);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	*flags = handle->flags;
 
@@ -978,7 +973,7 @@ int media_packet_set_flags(media_packet_h packet, media_buffer_flags_e flags)
 
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	handle->flags |= flags;
 
@@ -992,7 +987,7 @@ int media_packet_unset_flags(media_packet_h packet, media_buffer_flags_e flags)
 
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	handle->flags &= ~flags;
 
@@ -1007,7 +1002,7 @@ int media_packet_is_codec_config(media_packet_h packet, bool * is_codec_config)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(is_codec_config);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	if (MEDIA_PACKET_CODEC_CONFIG_DATA(packet))
 		*is_codec_config = true;
@@ -1025,7 +1020,7 @@ int media_packet_is_end_of_stream(media_packet_h packet, bool * is_eos)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(is_eos);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	if (MEDIA_PACKET_CODEC_END_OF_STREAM(packet))
 		*is_eos = true;
@@ -1043,7 +1038,7 @@ int media_packet_is_sync_frame(media_packet_h packet, bool * is_sync)
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(is_sync);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	if (MEDIA_PACKET_CODEC_SYNC_FRAME(packet))
 		*is_sync = true;
@@ -1061,13 +1056,13 @@ int media_packet_has_tbm_surface_buffer(media_packet_h packet, bool * has_tbm_su
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(has_tbm_surface);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
-	if ((handle->type == MEDIA_BUFFER_TYPE_TBM_SURFACE || handle->type == MEDIA_BUFFER_TYPE_EXTERNAL_TBM_SURFACE) && handle->surface_data) {
+	if ((handle->type == MEDIA_BUFFER_TYPE_TBM_SURFACE || handle->type == MEDIA_BUFFER_TYPE_EXTERNAL_TBM_SURFACE) && handle->surface_data)
 		*has_tbm_surface = true;
-	} else {
+	else
 		*has_tbm_surface = false;
-	}
+
 	return ret;
 }
 
@@ -1080,7 +1075,7 @@ int media_packet_get_number_of_video_planes(media_packet_h packet, uint32_t * nu
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 	MEDIA_PACKET_NULL_ARG_CHECK(num);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	media_packet_has_tbm_surface_buffer(packet, &has_tbm);
 
@@ -1118,7 +1113,7 @@ int media_packet_get_video_stride_width(media_packet_h packet, int plane_idx, in
 		return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
 	}
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	media_packet_has_tbm_surface_buffer(packet, &has_tbm);
 
@@ -1161,7 +1156,7 @@ int media_packet_get_video_stride_height(media_packet_h packet, int plane_idx, i
 		return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
 	}
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	media_packet_has_tbm_surface_buffer(packet, &has_tbm);
 
@@ -1204,7 +1199,7 @@ int media_packet_get_video_plane_data_ptr(media_packet_h packet, int plane_idx, 
 		return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
 	}
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	media_packet_has_tbm_surface_buffer(packet, &has_tbm);
 
@@ -1243,7 +1238,7 @@ int media_packet_get_codec_data(media_packet_h packet, void **codec_data, unsign
 	MEDIA_PACKET_NULL_ARG_CHECK(codec_data);
 	MEDIA_PACKET_NULL_ARG_CHECK(codec_data_size);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	LOGI("Get: codec data = %p, codec_data_size = %u\n", handle->codec_data, handle->codec_data_size);
 
@@ -1268,7 +1263,7 @@ int media_packet_set_codec_data(media_packet_h packet, void *codec_data, unsigne
 
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	LOGI("Set: codec data = %p, codec_data_size = %u\n", codec_data, codec_data_size);
 
@@ -1293,7 +1288,7 @@ int media_packet_destroy(media_packet_h packet)
 
 	MEDIA_PACKET_INSTANCE_CHECK(packet);
 
-	handle = (media_packet_s *) packet;
+	handle = (media_packet_s *)packet;
 
 	/* finailize callback */
 	if (handle->finalizecb_func) {
@@ -1308,16 +1303,16 @@ int media_packet_destroy(media_packet_h packet)
 	}
 
 	if (handle->type == MEDIA_BUFFER_TYPE_TBM_SURFACE) {
-		if (handle->surface_data) {
+		if (handle->surface_data)
 			tbm_surface_destroy((tbm_surface_h) handle->surface_data);
-		}
+
 	} else if (handle->type == MEDIA_BUFFER_TYPE_NORMAL) {
 		if (handle->data) {
 			_aligned_free_normal_buffer_type(handle->data);
 			handle->data = NULL;
 		}
 	} else if (handle->type == MEDIA_BUFFER_TYPE_EXTERNAL_TBM_SURFACE || handle->type == MEDIA_BUFFER_TYPE_EXTERNAL_MEMORY) {
-		// there is nothing to do, Do not free the buffer which is created by external module.
+		/* there is nothing to do, Do not free the buffer which is created by external module. */
 	}
 
 	/* free codec_data if it is allocated */
@@ -1400,9 +1395,8 @@ static void *_aligned_malloc_normal_buffer_type(uint64_t size, int alignment)
 	if ((temp_ptr = (unsigned char *)malloc(size + alignment)) != NULL) {
 		buffer_ptr = (unsigned char *)((unsigned long int)(temp_ptr + alignment - 1) & (~(unsigned long int)(alignment - 1)));
 
-		if (buffer_ptr == temp_ptr) {
+		if (buffer_ptr == temp_ptr)
 			buffer_ptr += alignment;
-		}
 
 		*(buffer_ptr - 1) = (unsigned char)(buffer_ptr - temp_ptr);
 		return (void *)buffer_ptr;
@@ -1419,11 +1413,11 @@ static void _aligned_free_normal_buffer_type(void *buffer_ptr)
 
 	ptr = (unsigned char *)buffer_ptr;
 
-	// *(ptr - 1) holds the offset to the real allocated block
-	// we sub that offset os we free the real pointer
+	/* *(ptr - 1) holds the offset to the real allocated block
+	we sub that offset os we free the real pointer */
 	ptr -= *(ptr - 1);
 
-	// Free the memory
+	/* Free the memory */
 	free(ptr);
 	ptr = NULL;
 }
