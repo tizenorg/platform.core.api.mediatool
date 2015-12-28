@@ -44,6 +44,9 @@ enum {
 	CURRENT_STATUS_FORMAT_SET_AUDIO_BIT,
 	CURRENT_STATUS_FORMAT_SET_AUDIO_AVG_BPS,
 	CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_TYPE,
+	CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_HEADER_TYPE,
+	CURRENT_STATUS_FORMAT_SET_TEXT_MIME,
+	CURRENT_STATUS_FORMAT_SET_TEXT_TYPE,
 };
 
 char g_uri[MAX_STRING_LEN];
@@ -88,20 +91,21 @@ static void _media_format_create(void)
 static void _media_format_set_video_mime(int num)
 {
 	int ret;
-	if (num == 0)
+	if (num == 0) {
 		ret = media_format_set_video_mime(g_media_format[media_format_idx], MEDIA_FORMAT_H264_HP);
-	else if (num == 1)
+	} else if (num == 1) {
 		ret = media_format_set_video_mime(g_media_format[media_format_idx], MEDIA_FORMAT_RGB888);
-	else if (num == 2)
+	} else if (num == 2) {
 		ret = media_format_set_video_mime(g_media_format[media_format_idx], MEDIA_FORMAT_I420);
-	else
+	} else {
 		g_print("Invalid number...\n");
+		return;
+	}
 
 	if (ret == MEDIA_FORMAT_ERROR_NONE)
 		g_print("media_format_set_video_mime is succeeded!!\n");
 	else
 		g_print("media_format_set_video_mime is failed...!!\n");
-
 }
 
 static void _media_format_set_video_width(int w)
@@ -152,20 +156,21 @@ static void _media_format_set_video_max_bps(int max_bps)
 static void _media_format_set_audio_mime(int num)
 {
 	int ret;
-	if (num == 0)
+	if (num == 0) {
 		ret = media_format_set_audio_mime(g_media_format[media_format_idx], MEDIA_FORMAT_AMR);
-	else if (num == 1)
+	} else if (num == 1) {
 		ret = media_format_set_audio_mime(g_media_format[media_format_idx], MEDIA_FORMAT_PCM);
-	else if (num == 2)
+	} else if (num == 2) {
 		ret = media_format_set_audio_mime(g_media_format[media_format_idx], MEDIA_FORMAT_AAC);
-	else
+	} else {
 		g_print("Invalid number...\n");
+		return;
+	}
 
 	if (ret == MEDIA_FORMAT_ERROR_NONE)
 		g_print("media_format_set_audio_mime is succeeded!!\n");
 	else
 		g_print("media_format_set_audio_mime is failed...!!\n");
-
 }
 
 static void _media_format_set_audio_channel(int channel)
@@ -223,6 +228,72 @@ static void _media_format_set_audio_aac_type(bool is_adts)
 		g_print("media_format_set_audio_aac_type is failed...!!\n");
 }
 
+static void _media_format_set_audio_aac_header_type(int aac_header_type)
+{
+	int ret;
+	if (aac_header_type < 0 || aac_header_type > 2) {
+		g_print("invalid number...\n");
+		return;
+	}
+	ret = media_format_set_audio_aac_header_type(g_media_format[media_format_idx], aac_header_type);
+
+	if (ret == MEDIA_FORMAT_ERROR_NONE)
+		g_print("media_format_set_audio_aac_header_type is succeeded!! \n");
+	else
+		g_print("media_format_set_audio_aac_header_type is failed!! \n");
+}
+
+static void _media_format_get_audio_aac_header_type()
+{
+	int ret;
+	media_format_aac_header_type_e aac_header_type;
+	ret = media_format_get_audio_aac_header_type(g_media_format[0], &aac_header_type);
+	if (ret == MEDIA_FORMAT_ERROR_NONE) {
+		g_print("media_format_get_audio_aac_header_type is succeded!! \n");
+		g_print("media_format_aac_header_type_e : %d\n", aac_header_type);
+	} else
+		g_print("media_format_get_audio_aac_header_type is failed!! \n");
+}
+
+static void _media_format_set_text_mime(int num)
+{
+	int ret;
+	if (num == 0) {
+		ret = media_format_set_text_mime(g_media_format[media_format_idx], MEDIA_FORMAT_TEXT_MP4);
+	} else if (num == 1) {
+		ret = media_format_set_text_mime(g_media_format[media_format_idx], MEDIA_FORMAT_TEXT_3GP);
+	} else {
+		g_print("Invalid number...\n");
+		return;
+	}
+
+	if (ret == MEDIA_FORMAT_ERROR_NONE)
+		g_print("media_format_set_text_mime is succeeded!!\n");
+	else
+		g_print("media_format_set_text_mime is failed...!!\n");
+
+}
+
+static void _media_format_set_text_type(int num)
+{
+	int ret;
+	if (num == 0) {
+		ret = media_format_set_text_type(g_media_format[media_format_idx], MEDIA_FORMAT_TEXT_TYPE_NONE);
+	} else if (num == 1) {
+		ret = media_format_set_text_type(g_media_format[media_format_idx], MEDIA_FORMAT_TEXT_TYPE_TIMED_TEXT_3GPP);
+	} else if (num == 2) {
+		ret = media_format_set_text_type(g_media_format[media_format_idx], MEDIA_FORMAT_TEXT_TYPE_TIMED_TEXT_MP4);
+	} else {
+		g_print("Invalid number...\n");
+		return;
+	}
+
+	if (ret == MEDIA_FORMAT_ERROR_NONE)
+		g_print("media_format_set_text_type is succeeded!!\n");
+	else
+		g_print("media_format_set_text_type is failed...!!\n");
+}
+
 static void _create_format_320_240_es(void)
 {
 
@@ -250,12 +321,10 @@ static void _create_format_320_240_es(void)
 	} else {
 		g_print("media_format_create failed..\n");
 	}
-
 }
 
 static void _create_format_raw(void)
 {
-
 	if (media_format_create(&g_media_format[2]) == MEDIA_FORMAT_ERROR_NONE) {
 		g_print("media_format_create is succeeded! \n");
 		int ret = MEDIA_FORMAT_ERROR_NONE;
@@ -635,6 +704,17 @@ static void _media_packet_is_audio(void)
 	}
 }
 
+static void _media_packet_is_text(void)
+{
+	bool is_text;
+	if (media_packet_is_text(g_media_packet[0], &is_text) == MEDIA_PACKET_ERROR_NONE) {
+		g_print("media_packet_is_text sucess!!\n");
+		g_print("\t\t[media_packet]===> is_text = %d", is_text);
+	} else {
+		g_print("media_packet_is_text is failed...");
+	}
+}
+
 static void _media_packet_is_encoded(void)
 {
 	bool is_encoded;
@@ -677,7 +757,7 @@ static void _media_packet_get_format(void)
 			if (media_format_get_video_info(fmt, NULL, &w, &h, NULL, NULL) == MEDIA_PACKET_ERROR_NONE)
 				g_print("\t\t [media_format] width = %d, height =%d", w, h);
 			else
-			g_print("media_format_get_video is failed...");
+				g_print("media_format_get_video is failed...");
 		} else if (MEDIA_FORMAT_IS_AUDIO(fmt)) {
 			if (media_format_get_audio_info(fmt, NULL, &channel, &samplerate, &bit, &audio_avg_bps) == MEDIA_PACKET_ERROR_NONE)
 				g_print("\t\t [media_format] channel = %d, samplerate = %d, bit = %d, avg_bps = %d", channel, samplerate, bit, audio_avg_bps);
@@ -764,10 +844,24 @@ static void _media_format_get_audio_info(void)
 
 	if (media_format_get_audio_info(g_media_format[0], &mime, &channel, &samplerate, &bit, &avg_bps) == MEDIA_FORMAT_ERROR_NONE) {
 		g_print("media_format_get_audio_info is sucess!\n");
-		g_print("\t\t[media_format_get_audio_info]mime:0x%x, channel :%d, samplerate :%d, bit: %d, avg_bps:%d, is_adts:%d \n", mime, channel, samplerate, bit, avg_bps);
+		g_print("\t\t[media_format_get_audio_info]mime:0x%x, channel :%d, samplerate :%d, bit: %d, avg_bps:%d \n", mime, channel, samplerate, bit, avg_bps);
 		g_print("packet format ref_count: %d", MEDIA_FORMAT_GET_REFCOUNT(g_media_format[0]));
 	} else {
 		g_print("media_format_get_audio_info is failed..");
+	}
+}
+
+static void _media_format_get_text_info(void)
+{
+	media_format_mimetype_e mime;
+	media_format_text_type_e type;
+
+	if (media_format_get_text_info(g_media_format[0], &mime, &type) == MEDIA_FORMAT_ERROR_NONE) {
+		g_print("_media_format_get_text_info is sucess!\n");
+		g_print("\t\t[_media_format_get_text_info]mime:0x%x, type: %d \n", mime, type);
+		g_print("packet format ref_count: %d", MEDIA_FORMAT_GET_REFCOUNT(g_media_format[0]));
+	} else {
+		g_print("_media_format_get_text_info is failed..");
 	}
 }
 
@@ -844,100 +938,117 @@ void _interpret_main_menu(char *cmd)
 {
 	int len = strlen(cmd);
 	if (len == 1) {
-		if (strncmp(cmd, "a", 1) == 0)
+		if (strncmp(cmd, "a", 1) == 0) {
 			_media_packet_create_alloc();
-		else if (strncmp(cmd, "d", 1) == 0)
+		} else if (strncmp(cmd, "d", 1) == 0) {
 			_media_packet_destroy();
-		else if (strncmp(cmd, "b", 1) == 0)
+		} else if (strncmp(cmd, "b", 1) == 0) {
 			_media_packet_create_from_tbm_surface();
-		else if (strncmp(cmd, "c", 1) == 0)
+		} else if (strncmp(cmd, "c", 1) == 0) {
 			_media_packet_copy();
-		else if (strncmp(cmd, "q", 1) == 0)
+		} else if (strncmp(cmd, "q", 1) == 0) {
 			quit_program();
-
+		}
 	} else if (len == 2) {
-		if (strncmp(cmd, "aa", 2) == 0)
+		if (strncmp(cmd, "aa", 2) == 0) {
 			_media_packet_create();
-		else if (strncmp(cmd, "ab", 2) == 0)
+		} else if (strncmp(cmd, "ab", 2) == 0) {
 			_media_packet_alloc();
-		else if (strncmp(cmd, "iv", 2) == 0)
+		} else if (strncmp(cmd, "iv", 2) == 0) {
 			_media_packet_is_video();
-		else if (strncmp(cmd, "ia", 2) == 0)
+		} else if (strncmp(cmd, "ia", 2) == 0) {
 			_media_packet_is_audio();
-		else if (strncmp(cmd, "ie", 2) == 0)
+		} else if (strncmp(cmd, "it", 2) == 0) {
+			_media_packet_is_text();
+		} else if (strncmp(cmd, "ie", 2) == 0) {
 			_media_packet_is_encoded();
-		else if (strncmp(cmd, "ir", 2) == 0)
+		} else if (strncmp(cmd, "ir", 2) == 0) {
 			_media_packet_is_raw();
-		else if (strncmp(cmd, "gd", 2) == 0)
+		} else if (strncmp(cmd, "gd", 2) == 0) {
 			_media_packet_get_duration();
-		else if (strncmp(cmd, "sd", 2) == 0)
+		} else if (strncmp(cmd, "sd", 2) == 0) {
 			g_menu_state = CURRENT_STATUS_DURATION;
-		else if (strncmp(cmd, "gf", 2) == 0)
+		} else if (strncmp(cmd, "gf", 2) == 0) {
 			_media_packet_get_format();
-		else if (strncmp(cmd, "gs", 2) == 0)
+		} else if (strncmp(cmd, "gs", 2) == 0) {
 			_media_packet_get_buffer_size();
-		else if (strncmp(cmd, "sf", 2) == 0)
+		} else if (strncmp(cmd, "sf", 2) == 0) {
 			g_menu_state = CURRENT_STATUS_PACKET_SET_FORMAT;
-		else if (strncmp(cmd, "se", 2) == 0)
+		} else if (strncmp(cmd, "se", 2) == 0) {
 			_media_packet_set_extra();
-		else if (strncmp(cmd, "ge", 2) == 0)
+		} else if (strncmp(cmd, "ge", 2) == 0) {
 			_media_packet_get_extra();
-		else if (strncmp(cmd, "ht", 2) == 0)
+		} else if (strncmp(cmd, "ht", 2) == 0) {
 			_media_packet_has_tbm_surface_buffer();
-		else if (strncmp(cmd, "cf", 2) == 0)
+		} else if (strncmp(cmd, "cf", 2) == 0) {
 			_media_format_create();
+		}
 
 	} else if (len == 3) {
-		if (strncmp(cmd, "gbp", 3) == 0)
+		if (strncmp(cmd, "gbp", 3) == 0) {
 			_media_packet_get_buffer_data_ptr();
-		else if (strncmp(cmd, "gts", 3) == 0)
+		} else if (strncmp(cmd, "gts", 3) == 0) {
 			_media_packet_get_tbm_surface();
-		else if (strncmp(cmd, "fgv", 3) == 0)
+		} else if (strncmp(cmd, "fgv", 3) == 0) {
 			_media_format_get_video_info();
-		else if (strncmp(cmd, "fga", 3) == 0)
+		} else if (strncmp(cmd, "fga", 3) == 0) {
 			_media_format_get_audio_info();
-		else if (strncmp(cmd, "svm", 3) == 0)
+		} else if (strncmp(cmd, "fgt", 3) == 0) {
+			_media_format_get_text_info();
+		} else if (strncmp(cmd, "svm", 3) == 0) {
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_VIDEO_MIME;
-		else if (strncmp(cmd, "svw", 3) == 0)
+		} else if (strncmp(cmd, "svw", 3) == 0) {
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_VIDEO_WIDTH;
-		else if (strncmp(cmd, "svh", 3) == 0)
+		} else if (strncmp(cmd, "svh", 3) == 0) {
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_VIDEO_HEIGHT;
-		else if (strncmp(cmd, "sam", 3) == 0)
+		} else if (strncmp(cmd, "sam", 3) == 0) {
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_MIME;
-		else if (strncmp(cmd, "sac", 3) == 0)
+		} else if (strncmp(cmd, "sac", 3) == 0) {
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_CHANNEL;
-		else if (strncmp(cmd, "sas", 3) == 0)
+		} else if (strncmp(cmd, "sas", 3) == 0) {
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_SAMPLERATE;
-		else if (strncmp(cmd, "sab", 3) == 0)
+		} else if (strncmp(cmd, "sab", 3) == 0) {
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_BIT;
-		else if (strncmp(cmd, "gnp", 3) == 0)
+		} else if (strncmp(cmd, "stm", 3) == 0) {
+			g_menu_state = CURRENT_STATUS_FORMAT_SET_TEXT_MIME;
+		} else if (strncmp(cmd, "stt", 3) == 0) {
+			g_menu_state = CURRENT_STATUS_FORMAT_SET_TEXT_TYPE;
+		} else if (strncmp(cmd, "gnp", 3) == 0) {
 			_media_packet_get_number_of_video_planes();
-		else if (strncmp(cmd, "gsw", 3) == 0)
+		} else if (strncmp(cmd, "gsw", 3) == 0) {
 			_media_packet_get_video_stride_width();
-		else if (strncmp(cmd, "gsh", 3) == 0)
+		} else if (strncmp(cmd, "gsh", 3) == 0) {
 			_media_packet_get_video_stride_height();
-		else if (strncmp(cmd, "gpp", 3) == 0)
+		} else if (strncmp(cmd, "gpp", 3) == 0) {
 			_media_packet_get_video_plane_data_ptr();
-		else if (strncmp(cmd, "scd", 3) == 0)
+		} else if (strncmp(cmd, "scd", 3) == 0) {
 			_media_packet_set_codec_data();
-		else if (strncmp(cmd, "gcd", 3) == 0)
+		} else if (strncmp(cmd, "gcd", 3) == 0) {
 			_media_packet_get_codec_data();
-
+		}
 	} else if (len == 4) {
-		if (strncmp(cmd, "fraw", 4) == 0)
+		if (strncmp(cmd, "fraw", 4) == 0) {
 			_create_format_raw();
-		else if (strncmp(cmd, "fes2", 4) == 0)
+		} else if (strncmp(cmd, "fes2", 4) == 0) {
 			_create_format_320_240_es();
-		else if (strncmp(cmd, "svab", 4) == 0)
+		} else if (strncmp(cmd, "svab", 4) == 0) {
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_VIDEO_AVG_BPS;
-		else if (strncmp(cmd, "svmb", 4) == 0)
+		} else if (strncmp(cmd, "svmb", 4) == 0) {
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_VIDEO_MAX_BPS;
-		else if (strncmp(cmd, "saab", 4) == 0)
+		} else if (strncmp(cmd, "saab", 4) == 0) {
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_AVG_BPS;
-		else if (strncmp(cmd, "saat", 4) == 0)
+		} else if (strncmp(cmd, "saat", 4) == 0) {
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_TYPE;
+		}
+	} else if (len == 5) {
+		if (strncmp(cmd, "saaht", 5) == 0) {
+			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_HEADER_TYPE;
+		}
+	} else if (len == 6) {
+		if (strncmp(cmd, "fgaaht", 6) == 0) {
+			_media_format_get_audio_aac_header_type();
+		}
 	}
-
 }
 
 static void displaymenu(void)
@@ -978,6 +1089,20 @@ static void displaymenu(void)
 		g_print("input audio average bps:\n");
 	} else if (g_menu_state == CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_TYPE) {
 		g_print("input audio aac type (0 or 1):\n");
+	} else if (g_menu_state == CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_HEADER_TYPE) {
+		g_print("input audio aac header type\n");
+		g_print("0. MEDIA_FORMAT_AAC_HEADER_NONE \n");
+		g_print("1. MEDIA_FORMAT_AAC_HEADER_ADTS\n");
+		g_print("2. MEDIA_FORMAT_AAC_HEADER_ADIF\n");
+	} else if (g_menu_state == CURRENT_STATUS_FORMAT_SET_TEXT_MIME) {
+		g_print("choose text media format mime type\n");
+		g_print("0. MEDIA_FORMAT_TEXT_MP4\n");
+		g_print("1. MEDIA_FORMAT_TEXT_3GP\n");
+	} else if (g_menu_state == CURRENT_STATUS_FORMAT_SET_TEXT_TYPE) {
+		g_print("choose text media format type\n");
+		g_print("0. MEDIA_FORMAT_TEXT_TYPE_NONE \n");
+		g_print("1. MEDIA_FORMAT_TEXT_TYPE_TIMED_TEXT_3GPP \n");
+		g_print("2. MEDIA_FORMAT_TEXT_TYPE_TIMED_TEXT_MP4 \n");
 	} else {
 		g_print("*** unknown status.\n");
 		quit_program();
@@ -1103,6 +1228,27 @@ static void interpret(char *cmd)
 			reset_menu_state();
 		}
 		break;
+	case CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_HEADER_TYPE:
+		{
+			int header_type = atoi(cmd);
+			_media_format_set_audio_aac_header_type(header_type);
+			reset_menu_state();
+		}
+		break;
+	case CURRENT_STATUS_FORMAT_SET_TEXT_MIME:
+		{
+			int text_mime_idx = atoi(cmd);
+			_media_format_set_text_mime(text_mime_idx);
+			reset_menu_state();
+		}
+		break;
+	case CURRENT_STATUS_FORMAT_SET_TEXT_TYPE:
+		{
+			int text_type_idx = atoi(cmd);
+			_media_format_set_text_type(text_type_idx);
+			reset_menu_state();
+		}
+		break;
 	case CURRENT_STATUS_DURATION:
 		{
 			uint64_t duration = (uint64_t) atoi(cmd);
@@ -1140,10 +1286,17 @@ void display_sub_basic()
 	g_print("sas. media_format_set_audio_samplerate\t");
 	g_print("sab. media_format_set_audio_bit \t");
 	g_print("saab. media_format_set_audio_avg_bps\t");
-	g_print("saat. media_format_set_audio_aac_type\t");
+	g_print("\n");
+	g_print("saat. media_format_set_audio_aac_type \t");
+	g_print("saaht. media_format_set_audio_aac_header_type\t");
+	g_print("\n");
+	g_print("stm. media_format_set_text_mime \t");
+	g_print("stt. media_format_set_text_type\t");
 	g_print("\n");
 	g_print("fgv. media_format_get_video_info \t");
-	g_print("fga. media_format_get_audio_info \t\t");
+	g_print("fga. media_format_get_audio_info \t");
+	g_print("fgt. media_format_get_text_info \t");
+	g_print("fgaaht. media_format_get_audio_aac_header_type \t");
 	g_print("\n");
 	g_print("\n");
 	g_print("a. media_packet_create_alloc(+media_format_unref)  \t");
@@ -1155,6 +1308,7 @@ void display_sub_basic()
 	g_print("\n");
 	g_print("iv. media_packet_is_video \t");
 	g_print("ia. media_packet_is_audio \t");
+	g_print("it. media_packet_is_text \t");
 	g_print("ie. media_packet_is_encoded \t");
 	g_print("ir. media_packet_is_raw \t");
 	g_print("ht. media_packet_has_tbm_surface_buffer \t");
