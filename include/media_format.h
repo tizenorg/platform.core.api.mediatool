@@ -612,6 +612,7 @@ int media_format_set_audio_aac_type(media_format_h fmt, bool is_adts);
  * @since_tizen 3.0
  * @param[in] fmt The media_format_h to get audio information
  * @param[in] aac_header_type The media_format_aac_header_type_e, ex) MEDIA_FORMAT_AAC_HEADER_ADTS
+ * @pre must set audio MIME type by media_format_set_audio_mime()
  *
  * @return @c 0 on success,
  *         otherwise a negative error value
