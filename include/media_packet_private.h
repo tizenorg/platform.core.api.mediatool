@@ -119,6 +119,7 @@ typedef struct _media_packet_s {
 	media_packet_finalize_cb finalizecb_func;
 	void *userdata;
 	bool is_allocated;
+	bool using_pool;
 	void *extradata;
 	void *codec_data;
 	unsigned int codec_data_size;
@@ -128,6 +129,10 @@ typedef struct _media_packet_s {
 	media_buffer_flags_e flags;
 
 } media_packet_s;
+
+int _pkt_alloc_buffer(media_packet_s *pkt);
+int _pkt_reset_buffer(media_packet_h packet);
+void _aligned_free_normal_buffer_type(void *buffer_ptr);
 
 #ifdef __cplusplus
 }
