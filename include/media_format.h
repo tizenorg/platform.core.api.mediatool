@@ -37,13 +37,13 @@ extern "C" {
 
 /**
  * @brief Media Format handle type.
-  * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
 typedef struct media_format_s *media_format_h;
 
 /**
  * @brief Enumerations of  media format error.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
 typedef enum {
 	MEDIA_FORMAT_ERROR_NONE = TIZEN_ERROR_NONE,					/**< Successful */
@@ -55,7 +55,7 @@ typedef enum {
 
 /**
  * @brief Enumeration for media format type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
 typedef enum {
 	MEDIA_FORMAT_NONE = 0x00000000,					 /**< media format type is NONE */
@@ -68,7 +68,7 @@ typedef enum {
 
 /**
  * @brief Enumeration for media format data type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
 typedef enum {
 	MEDIA_FORMAT_ENCODED = 0x10000000,			/**< media format data type is encoded type */
@@ -77,28 +77,28 @@ typedef enum {
 
 /**
  * @brief Enumeration for media format MIME type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
 typedef enum {
 	/* Audio */
 	MEDIA_FORMAT_L16 = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1010),		   /**< media format mime type is L16, AUDIO*/
 	MEDIA_FORMAT_ALAW = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1020),		   /**< media format mime type is ALAW, AUDIO*/
 	MEDIA_FORMAT_ULAW = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1030),		   /**< media format mime type is ULAW,  AUDIO */
-	MEDIA_FORMAT_AMR = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1040),		   /**< media format mime type is AMR,  AUDIO,  indicates MEDIA_FORMAT_AMR_NB (Since 2.4) */
-	MEDIA_FORMAT_AMR_NB = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1040),		   /**< media format mime type is AMR_NB,  AUDIO , (Since 2.4) */
-	MEDIA_FORMAT_AMR_WB = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1041),		   /**< media format mime type is AMR_WB,  AUDIO, (Since 2.4) */
+	MEDIA_FORMAT_AMR = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1040),		   /**< media format mime type is AMR,  AUDIO,  indicates MEDIA_FORMAT_AMR_NB (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
+	MEDIA_FORMAT_AMR_NB = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1040),		   /**< media format mime type is AMR_NB,  AUDIO , (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
+	MEDIA_FORMAT_AMR_WB = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1041),		   /**< media format mime type is AMR_WB,  AUDIO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
 	MEDIA_FORMAT_G729 = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1050),		   /**< media format mime type is G729,  AUDIO*/
-	MEDIA_FORMAT_AAC = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1060),		   /**< media format mime type is AAC,  AUDIO, indicates MEDIA_FORMAT_AAC_LC (Since 2.4) */
-	MEDIA_FORMAT_AAC_LC = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1060),		   /**< media format mime type is AAC_LC,  AUDIO, (Since 2.4) */
-	MEDIA_FORMAT_AAC_HE = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1061),		   /**< media format mime type is AAC_HE,  AUDIO, (Since 2.4) */
-	MEDIA_FORMAT_AAC_HE_PS = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1062),	   /**< media format mime type is AAC_HE_PS,  AUDIO, (Since 2.4) */
+	MEDIA_FORMAT_AAC = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1060),		   /**< media format mime type is AAC,  AUDIO, indicates MEDIA_FORMAT_AAC_LC (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
+	MEDIA_FORMAT_AAC_LC = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1060),		   /**< media format mime type is AAC_LC,  AUDIO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
+	MEDIA_FORMAT_AAC_HE = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1061),		   /**< media format mime type is AAC_HE,  AUDIO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
+	MEDIA_FORMAT_AAC_HE_PS = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1062),	   /**< media format mime type is AAC_HE_PS,  AUDIO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
 	MEDIA_FORMAT_MP3 = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1070),		   /**< media format mime type is MP3,  AUDIO*/
-	MEDIA_FORMAT_VORBIS = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1080),		   /**< media format mime type is VORBIS,  AUDIO, (Since 2.4) */
-	MEDIA_FORMAT_FLAC = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1090),		   /**< media format mime type is FLAC,  AUDIO, (Since 2.4) */
-	MEDIA_FORMAT_WMAV1 = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x10A0),		   /**< media format mime type is WMAV1,  AUDIO, (Since 2.4) */
-	MEDIA_FORMAT_WMAV2 = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x10A1),		   /**< media format mime type is WMAV2,  AUDIO, (Since 2.4) */
-	MEDIA_FORMAT_WMAPRO = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x10A2),		   /**< media format mime type is WMAVPRO,  AUDIO, (Since 2.4) */
-	MEDIA_FORMAT_WMALSL = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x10A3),		   /**< media format mime type is WMAVLSL,  AUDIO, (Since 2.4) */
+	MEDIA_FORMAT_VORBIS = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1080),		   /**< media format mime type is VORBIS,  AUDIO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
+	MEDIA_FORMAT_FLAC = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x1090),		   /**< media format mime type is FLAC,  AUDIO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
+	MEDIA_FORMAT_WMAV1 = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x10A0),		   /**< media format mime type is WMAV1,  AUDIO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
+	MEDIA_FORMAT_WMAV2 = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x10A1),		   /**< media format mime type is WMAV2,  AUDIO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
+	MEDIA_FORMAT_WMAPRO = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x10A2),		   /**< media format mime type is WMAVPRO,  AUDIO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
+	MEDIA_FORMAT_WMALSL = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_ENCODED | 0x10A3),		   /**< media format mime type is WMAVLSL,  AUDIO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
 
 	MEDIA_FORMAT_PCM = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1510),			   /**< media format mime type is PCM, AUDIO, indicates MEDIA_FORMAT_PCM_S16LE (Since 3.0) */
 	MEDIA_FORMAT_PCM_S16LE = (MEDIA_FORMAT_AUDIO | MEDIA_FORMAT_RAW | 0x1510),		   /**< media format mime type is PCM signed 16-bit little-endian, AUDIO, (Since 3.0) */
@@ -140,12 +140,12 @@ typedef enum {
 	MEDIA_FORMAT_MPEG2_HP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2062),	   /**< media format mime type is MPEG2_HP, VIDEO */
 	MEDIA_FORMAT_MPEG4_SP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2070),	   /**< media format mime type is MPEG4_SP, VIDEO */
 	MEDIA_FORMAT_MPEG4_ASP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2071),	   /**< media format mime type is MPEG4_ASP, VIDEO */
-	MEDIA_FORMAT_HEVC = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2080),		   /**< media format mime type is HEVC, VIDEO, (Since 2.4) */
+	MEDIA_FORMAT_HEVC = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2080),		   /**< media format mime type is HEVC, VIDEO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
 	MEDIA_FORMAT_HEVC_MP = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2081),		  /**< media format mime type is HEVC Main Profile, VIDEO, (Since 3.0) */
 	MEDIA_FORMAT_HEVC_M10P = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2082),			/**< media format mime type is HEVC Main10 Profile, VIDEO, (Since 3.0) */
-	MEDIA_FORMAT_VP8 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2090),		   /**< media format mime type is VP8, VIDEO, (Since 2.4) */
-	MEDIA_FORMAT_VP9 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x20A0),		   /**< media format mime type is VP9, VIDEO, (Since 2.4) */
-	MEDIA_FORMAT_VC1 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x20B0),		   /**< media format mime type is VC1, VIDEO, (Since 2.4) */
+	MEDIA_FORMAT_VP8 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x2090),		   /**< media format mime type is VP8, VIDEO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
+	MEDIA_FORMAT_VP9 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x20A0),		   /**< media format mime type is VP9, VIDEO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
+	MEDIA_FORMAT_VC1 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_ENCODED | 0x20B0),		   /**< media format mime type is VC1, VIDEO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
 
 	MEDIA_FORMAT_I420 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_RAW | 0x2510),			   /**< media format mime type is I420, VIDEO */
 	MEDIA_FORMAT_NV12 = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_RAW | 0x2520),			   /**< media format mime type is NV12, VIDEO */
@@ -177,7 +177,7 @@ typedef enum {
 	MEDIA_FORMAT_CONTAINER_AAC_ADTS = (MEDIA_FORMAT_CONTAINER | 0x4030),			   /**< media format mime type is AAC_ADTS container, AUDIO, (Since 3.0) */
 	MEDIA_FORMAT_CONTAINER_AAC_ADIF = (MEDIA_FORMAT_CONTAINER | 0x4031),			   /**< media format mime type is AAC_ADIF container, AUDIO, (Since 3.0) */
 
-	MEDIA_FORMAT_NATIVE_VIDEO = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_RAW | 0x7000),	   /**< media format mime type is HW dependent, VIDEO, (Since 2.4) */
+	MEDIA_FORMAT_NATIVE_VIDEO = (MEDIA_FORMAT_VIDEO | MEDIA_FORMAT_RAW | 0x7000),	   /**< media format mime type is HW dependent, VIDEO, (Since @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif) */
 	/* Text */
 	MEDIA_FORMAT_TEXT_MP4 = (MEDIA_FORMAT_TEXT | MEDIA_FORMAT_ENCODED | 0x8010),		/**< media format mime type is MP4, TEXT, (Since 3.0) */
 	MEDIA_FORMAT_TEXT_3GP = (MEDIA_FORMAT_TEXT | MEDIA_FORMAT_ENCODED | 0x8020),		/**< media format mime type is 3GP, TEXT, (Since 3.0) */
@@ -187,7 +187,7 @@ typedef enum {
 
 /**
  * @brief Enumeration for media color model.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
 typedef enum {
 	MEDIA_COLOR_MODEL_NONE,		   /**< media format color model is NONE */
@@ -219,7 +219,7 @@ typedef enum {
 
 /**
  * @brief Creates a media format.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @details    It creates media format. and reference count will be set to 1
                     For destroying media_format_h handle, use media_format_unref().
  * @param[out] fmt allocated media_format_h
@@ -282,7 +282,7 @@ int media_format_get_text_info(media_format_h fmt, media_format_mimetype_e * mim
 
 /**
  * @brief Gets video information of media format.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @details   returns mimetype, width, height, average bps, max bps of this media format.
  * @param[in] fmt media_format_h to get video information
  * @param[out] mimetype media_format_mimetype_e , ex) MEDIA_FORMAT_H264_HP
@@ -306,7 +306,7 @@ int media_format_get_video_info(media_format_h fmt, media_format_mimetype_e * mi
 
 /**
  * @brief Gets audio information of media format.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @details   returns mimetype, channels, height, samplerate bps, max bps of this media format.
  * @param[in] fmt media_format_h to get audio information
  * @param[out] mimetype media_format_mimetype_e , ex) MEDIA_FORMAT_PCM
@@ -330,7 +330,7 @@ int media_format_get_audio_info(media_format_h fmt, media_format_mimetype_e * mi
 
 /**
  * @brief Gets audio aac type of media format.
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  * @param[in] fmt media_format_h to get audio information
  * @param[out] is_adts aac adts flag of the audio
  *
@@ -417,7 +417,7 @@ int media_format_set_text_type(media_format_h fmt, media_format_text_type_e type
 
 /**
  * @brief Sets video MIME type of media format.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] fmt media_format_h to set
  * @param[in] mimetype media_format_mimetype_e , ex) MEDIA_FORMAT_H264_HP
  *
@@ -432,7 +432,7 @@ int media_format_set_video_mime(media_format_h fmt, media_format_mimetype_e mime
 
 /**
  * @brief Sets video width of media format.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] fmt media_format_h to set
  * @param[in] width width of the video
  * @pre must set video MIME type by media_format_set_video_mime()
@@ -448,7 +448,7 @@ int media_format_set_video_width(media_format_h fmt, int width);
 
 /**
  * @brief Sets video height of media format.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] fmt media_format_h to set
  * @param[in] height height of the video
  * @pre must set video MIME type by media_format_set_video_mime()
@@ -464,7 +464,7 @@ int media_format_set_video_height(media_format_h fmt, int height);
 
 /**
  * @brief Sets video avg_bps of media format.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] fmt media_format_h to set
  * @param[in] avg_bps average bps of the video
  * @pre must set video MIME type by media_format_set_video_mime()
@@ -480,8 +480,7 @@ int media_format_set_video_avg_bps(media_format_h fmt, int avg_bps);
 
 /**
  * @brief Sets video max_bps of media format.
- * @since_tizen 2.3
-
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] fmt media_format_h to set
  * @param[in] max_bps max bps of the video
  * @pre must set video MIME type by media_format_set_video_mime()
@@ -512,7 +511,7 @@ int media_format_set_video_frame_rate(media_format_h fmt, int frame_rate);
 
 /**
  * @brief Sets audio MIME type of media format.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] fmt media_format_h to set audio information
  * @param[in] mimetype media_format_mimetype_e , ex) MEDIA_FORMAT_PCM
  *
@@ -527,7 +526,7 @@ int media_format_set_audio_mime(media_format_h fmt, media_format_mimetype_e mime
 
 /**
  * @brief Sets audio channel of media format.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] fmt media_format_h to set audio information
  * @param[in] channel channel of the audio
  * @pre must set audio MIME type by media_format_set_audio_mime()
@@ -543,7 +542,7 @@ int media_format_set_audio_channel(media_format_h fmt, int channel);
 
 /**
  * @brief Sets audio samplerate of media format.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] fmt media_format_h to set
  * @param[in] samplerate sampling rate of the audio
  * @pre must set audio MIME type by media_format_set_audio_mime()
@@ -559,7 +558,7 @@ int media_format_set_audio_samplerate(media_format_h fmt, int samplerate);
 
  /**
  * @brief Sets audio bit of media format.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @details   Sets audio bit resolution of this media format
  * @param[in] fmt media_format_h to set
  * @param[in] bit bit of the audio
@@ -576,7 +575,7 @@ int media_format_set_audio_bit(media_format_h fmt, int bit);
 
  /**
  * @brief Sets audio avg_bps of media format.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] fmt media_format_h to set
  * @param[in] avg_bps avg_bps of the audio
  * @pre must set audio MIME type by media_format_set_audio_mime()
@@ -592,7 +591,7 @@ int media_format_set_audio_avg_bps(media_format_h fmt, int avg_bps);
 
  /**
  * @brief Sets audio aac type of media format.
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  * @details   Sets audio aac data type of this media format
  * @param[in] fmt media_format_h to set
  * @param[in] is_adts aac adts flag of the audio
@@ -625,7 +624,7 @@ int media_format_set_audio_aac_header_type(media_format_h fmt, media_format_aac_
 
 /**
  * @brief Increase reference count of media_format_h object.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @details    increase ref_count of media_format_h
  * @param[in] fmt exist media_format_h
  *
@@ -641,7 +640,7 @@ int media_format_ref(media_format_h fmt);
 
 /**
  * @brief Decrease reference count of media_format_h object.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] fmt exist media_format_h
  *
  * @return @c 0 on success,
@@ -656,7 +655,7 @@ int media_format_unref(media_format_h fmt);
 
 /**
  * @brief Check whether the media_format_h is writable or not.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] fmt exist media_format_h
  * @param[out] is_writable if ref_count is 1, return true. if not, return false
  *
@@ -671,7 +670,7 @@ int media_format_is_writable(media_format_h fmt, bool * is_writable);
 
  /**
  * @brief Returns a writable copy of media_format_h.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @details If there is only one reference count on fmt, the caller must be the owner,
  *              and so this function will return the object unchanged.
  *              while, if there is more than one reference count on the object, a new object will be returned.
