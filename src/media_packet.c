@@ -27,13 +27,11 @@
 /* NOTE : static internal functions does not check anything on incomming parameters
  * Caller should takecare it
  */
-static int _pkt_alloc_buffer(media_packet_s *pkt);
 static uint64_t _pkt_calculate_video_buffer_size(media_packet_s *pkt);
 static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s *pkt);
 static uint64_t _pkt_calculate_text_buffer_size(media_packet_s *pkt);
 static uint32_t _convert_to_tbm_surface_format(media_format_mimetype_e format_type);
 static void *_aligned_malloc_normal_buffer_type(uint64_t size, int alignment);
-static void _aligned_free_normal_buffer_type(void *buffer_ptr);
 
 int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet)
 {
@@ -336,6 +334,45 @@ int _pkt_alloc_buffer(media_packet_s *pkt)
 
 	}
 	return MEDIA_PACKET_ERROR_NONE;
+}
+
+int _pkt_reset_buffer(media_packet_h packet)
+{
+	int i;
+	bool has_tbm;
+	media_packet_s *handle;
+	int ret = MEDIA_PACKET_ERROR_NONE;
+
+	MEDIA_PACKET_INSTANCE_CHECK(packet);
+	handle = (media_packet_s *)packet;
+
+	/* reset buffers */
+	if (handle->type == MEDIA_BUFFER_TYPE_TBM_SURFACE) {
+		media_packet_has_tbm_surface_buffer(packet, &has_tbm);
+
+		if (has_tbm) {
+			tbm_surface_info_s surface_info;
+			int err = tbm_surface_get_info((tbm_surface_h)handle->surface_data, &surface_info);
+			if (err == TBM_SURFACE_ERROR_NONE) {
+				for (i = 0; i < surface_info.num_planes; i++) {
+					memset(surface_info.planes[i].ptr, 0x0, surface_info.planes[i].size);
+				}
+			}
+		} else {
+			LOGE("tbm_surface_get_info() is failed.");
+			return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
+		}
+	} else {
+		memset(handle->data, 0x0, handle->size);
+		handle->size = 0;
+	}
+
+	/* Clear buffer flags */
+	handle->flags &= ~MEDIA_PACKET_CODEC_CONFIG;
+	handle->flags &= ~MEDIA_PACKET_END_OF_STREAM;
+	handle->flags &= ~MEDIA_PACKET_SYNC_FRAME;
+
+	return ret;
 }
 
 #define _ROUND_UP_16(num) (((num)+15)&~15)
@@ -1268,6 +1305,11 @@ int media_packet_destroy(media_packet_h packet)
 
 	handle = (media_packet_s *)packet;
 
+	if (handle->using_pool) {
+		LOGE("packet is being used by pool, release can be done by pool only");
+		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
+	}
+
 	/* finailize callback */
 	if (handle->finalizecb_func) {
 		int finalize_cb_ret;
@@ -1382,7 +1424,7 @@ static void *_aligned_malloc_normal_buffer_type(uint64_t size, int alignment)
 	return NULL;
 }
 
-static void _aligned_free_normal_buffer_type(void *buffer_ptr)
+void _aligned_free_normal_buffer_type(void *buffer_ptr)
 {
 	unsigned char *ptr;
 	if (buffer_ptr == NULL)
