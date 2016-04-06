@@ -29,6 +29,9 @@
 extern "C" {
 #endif
 
+#ifndef TIZEN_ERROR_MEDIA_TOOL
+#define TIZEN_ERROR_MEDIA_TOOL  -0x000033333
+#endif
 /**
  * @file media_packet.h
  * @brief This file contains the capi media tool API.
@@ -41,13 +44,13 @@ extern "C" {
 
 /**
  * @brief  The Media Packet handle.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
 typedef struct media_packet_s *media_packet_h;
 
 /**
  * @brief Enumeration for media packet error.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
 typedef enum {
 	MEDIA_PACKET_ERROR_NONE = TIZEN_ERROR_NONE,											/**< Successful */
@@ -55,11 +58,12 @@ typedef enum {
 	MEDIA_PACKET_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER,				/**< Invalid parameter */
 	MEDIA_PACKET_ERROR_INVALID_OPERATION = TIZEN_ERROR_INVALID_OPERATION,				/**< Invalid operation */
 	MEDIA_PACKET_ERROR_FILE_NO_SPACE_ON_DEVICE = TIZEN_ERROR_FILE_NO_SPACE_ON_DEVICE,	/**< No space left on device */
+	MEDIA_PACKET_ERROR_NO_AVAILABLE_PACKET = TIZEN_ERROR_MEDIA_TOOL | 0x01,    			/**< No Available packet, (Since 3.0) */
 } media_packet_error_e;
 
 /**
  * @brief Enumeration for media buffer flag.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
 typedef enum {
 	MEDIA_PACKET_CODEC_CONFIG = 0x1,   /**< The buffer marked as such contains codec initialization/codec specific data instead of media data */
@@ -69,7 +73,7 @@ typedef enum {
 
 /**
  * @brief Enumeration for the return values of media packet finalize call back functions.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @see media_packet_finalize_cb()
  */
 typedef enum _finalize_cb_ret {
@@ -81,7 +85,7 @@ typedef enum _finalize_cb_ret {
  * @brief   Called when the media packet is destroyed.
  * @details It will be invoked when media_packet_destroy() is called.
  *
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in] packet        The media packet handle
  * @param[in] error_code    The error code of #media_packet_error_e
@@ -104,7 +108,7 @@ typedef int (*media_packet_finalize_cb) (media_packet_h packet, int error_code, 
  * @brief    Creates a media packet handle and allocates buffer.
  * @details  The buffer will be allocated to heap or tbm_surface.
  *
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @remarks The @c packet must be released by using media_packet_destroy().
  * @param[in]  fmt       The allocated #media_format_h by caller
@@ -161,7 +165,7 @@ int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, 
  * @brief    Creates a media packet handle.
  * @details  It creates only media packet handle without allocated buffer.
  *
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @remarks The @c packet must be released by using media_packet_destroy().
  * @param[in] fmt       The allocated #media_format_h by caller
@@ -218,7 +222,7 @@ int media_packet_create(media_format_h fmt, media_packet_finalize_cb fcb, void *
  * @brief    Copies a media packet handle.
  * @details  It re-creates only media packet handle with exist media packet handle.
  *
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @remarks The @c new_packet must be released by using media_packet_destroy().
  * @param[in]   org_packet   The existing media packet handle
@@ -242,7 +246,7 @@ int media_packet_copy(media_packet_h org_packet, media_packet_finalize_cb fcb, v
  * @brief    Allocates buffer with media packet handle.
  * @details  Before using media_packet_alloc(), media packet handle must be exist.
  *
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in] packet   The existing media packet handle
  *
@@ -261,7 +265,7 @@ int media_packet_alloc(media_packet_h packet);
 /**
  * @brief    Creates media packet handle and allocates buffer with #tbm_surface_h.
  *
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @remarks The @c packet must be released by using media_packet_destroy().
  * @param[in]   fmt       The allocated #media_format_h by caller
@@ -319,7 +323,7 @@ int media_packet_create_from_tbm_surface(media_format_h fmt, tbm_surface_h surfa
  * @brief    Creates media packet handle with already allocated external buffer.
  * @details It does not support video's #MEDIA_FORMAT_RAW type.
  *
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  *
  * @remarks The @c packet must be released by using media_packet_destroy().
  * @param[in]   fmt       The allocated #media_format_h by caller
@@ -375,7 +379,7 @@ int media_packet_create_from_external_memory(media_format_h fmt, void *mem_ptr, 
 
 /**
  * @brief Gets #media_format_h of media packet
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] fmt      The media format of media packet
@@ -406,7 +410,7 @@ int media_packet_get_format(media_packet_h packet, media_format_h * fmt);
 
 /**
  * @brief Sets #media_format_h of media packet
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in] packet   The media packet handle
  * @param[in] fmt      The #media_format_h to set
@@ -437,7 +441,7 @@ int media_packet_set_format(media_packet_h packet, media_format_h fmt);
 
 /**
  * @brief Sets PTS of media packet.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in] packet   The media packet handle
  * @param[in] pts      The PTS value to set
@@ -452,7 +456,7 @@ int media_packet_set_pts(media_packet_h packet, uint64_t pts);
 
 /**
  * @brief Sets DTS of media packet handle.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[in]  dts      The DTS value to set
@@ -467,7 +471,7 @@ int media_packet_set_dts(media_packet_h packet, uint64_t dts);
 
 /**
  * @brief Sets PTS of media packet.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in] packet    The media packet handle
  * @param[in] duration  The duration value to set
@@ -482,7 +486,7 @@ int media_packet_set_duration(media_packet_h packet, uint64_t duration);
 
 /**
  * @brief Sets buffer size of media packet.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] size     The buffer size value to set
@@ -497,7 +501,7 @@ int media_packet_set_buffer_size(media_packet_h packet, uint64_t size);
 
 /**
  * @brief Gets PTS of media packet.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] pts      The PTS value to get
@@ -513,6 +517,7 @@ int media_packet_get_pts(media_packet_h packet, uint64_t * pts);
 /**
  * @brief Gets DTS of media packet
  * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] dts      The DTS value to get
@@ -527,7 +532,7 @@ int media_packet_get_dts(media_packet_h packet, uint64_t * dts);
 
 /**
  * @brief Gets duration of media packet.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet    The media packet handle
  * @param[out] duration  The duration value to get
@@ -542,7 +547,7 @@ int media_packet_get_duration(media_packet_h packet, uint64_t * duration);
 
 /**
  * @brief Gets buffer size of media packet.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] size     The buffer size value to get
@@ -557,7 +562,7 @@ int media_packet_get_buffer_size(media_packet_h packet, uint64_t * size);
 
 /**
  * @brief Gets buffer data pointer of media packet.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] data     The allocated buffer data pointer
@@ -572,7 +577,7 @@ int media_packet_get_buffer_data_ptr(media_packet_h packet, void **data);
 
 /**
  * @brief Gets TBM surface data of media packet.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] surface  The tbm_surface data pointer
@@ -587,7 +592,7 @@ int media_packet_get_tbm_surface(media_packet_h packet, tbm_surface_h * surface)
 
 /**
  * @brief Sets extra data of media packet.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in] packet   The media packet handle
  * @param[in] extra    The extra data to set
@@ -602,7 +607,7 @@ int media_packet_set_extra(media_packet_h packet, void *extra);
 
 /**
  * @brief Gets extra data of media packet.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] extra    The extra data to get
@@ -617,7 +622,7 @@ int media_packet_get_extra(media_packet_h packet, void **extra);
 
 /**
  * @brief Checks whether the given media packet is for video.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] is_video @c true if the given media packet is for video,
@@ -636,7 +641,7 @@ int media_packet_is_video(media_packet_h packet, bool * is_video);
 
 /**
  * @brief Checks whether the given media packet is for audio.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet    The media packet handle
  * @param[out] is_audio  @c true if the given media packet is for audio,
@@ -672,7 +677,7 @@ int media_packet_is_text(media_packet_h packet, bool * is_text);
 
 /**
  * @brief Checks whether the given media packet is encoded type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet      The media packet handle
  * @param[out] is_encoded  @c true if the given media packet is encoded,
@@ -691,7 +696,7 @@ int media_packet_is_encoded(media_packet_h packet, bool * is_encoded);
 
 /**
  * @brief Checks whether the given media packet is raw type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] is_raw   @c true if the given media packet is for raw video,
@@ -728,7 +733,7 @@ int media_packet_get_flags(media_packet_h packet, media_buffer_flags_e * flags);
 
 /**
  * @brief Sets #media_buffer_flags_e of media packet.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in] packet    The media packet handle
  * @param[in] flags    The media_buffer_flags_e of media packet to set
@@ -746,7 +751,7 @@ int media_packet_set_flags(media_packet_h packet, media_buffer_flags_e flags);
 
 /**
  * @brief Unsets media_buffer_flags_e of media packet
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in] packet   The media packet handle
  * @param[in] flags    The media_buffer_flags_e of media packet to unset
@@ -764,7 +769,7 @@ int media_packet_unset_flags(media_packet_h packet, media_buffer_flags_e flags);
 
 /**
  * @brief Checks whether the given media packet is codec data.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in] packet            The media packet handle
  * @param[out] is_codec_config  @c true if the given media packet is for codec data,
@@ -783,7 +788,7 @@ int media_packet_is_codec_config(media_packet_h packet, bool * is_codec_config);
 
 /**
  * @brief Checks whether the given media packet is eos.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in] packet   The media packet handle
  * @param[out] is_eos  @c true if the given media packet is for eos,
@@ -802,7 +807,7 @@ int media_packet_is_end_of_stream(media_packet_h packet, bool * is_eos);
 
 /**
  * @brief Checks whether the given media packet is sync frame.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] is_sync  @c true if the given media packet is for sync frame,
@@ -821,7 +826,7 @@ int media_packet_is_sync_frame(media_packet_h packet, bool * is_sync);
 
 /**
  * @brief Checks whether the allocated buffer is tbm surface or not.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] has_tbm_surface  @c true if the given media packet's allocated buffer is tbm surface,
@@ -841,7 +846,7 @@ int media_packet_has_tbm_surface_buffer(media_packet_h packet, bool * has_tbm_su
  *          It means that media_packet_h's buffer is allocated on tbm_surface.
  *          If not sure of that, use media_packet_is_video() and media_packet_is_raw() or media_packet_has_tbm_surface_buffer().
  *
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[out] num  The number of planes from tbm_surface
@@ -860,7 +865,7 @@ int media_packet_get_number_of_video_planes(media_packet_h packet, uint32_t * nu
  *          It means that media_packet_h's buffer is allocated on tbm_surface.
  *          If not sure of that, use media_packet_is_video() and media_packet_is_raw() or media_packet_has_tbm_surface_buffer().
  *
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[in]  plane_idx   The plane index value
@@ -880,7 +885,7 @@ int media_packet_get_video_stride_width(media_packet_h packet, int plane_idx, in
  *          It means that media_packet_h's buffer is allocated on tbm_surface.
  *          If not sure of that, use media_packet_is_video() and media_packet_is_raw() or media_packet_has_tbm_surface_buffer().
  *
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  *
  * @param[in]  packet   The media packet handle
  * @param[in]  plane_idx   The plane index value
@@ -900,7 +905,7 @@ int media_packet_get_video_stride_height(media_packet_h packet, int plane_idx, i
  *          It means that media_packet_h's buffer is allocated on tbm_surface.
  *          If not sure of that, use media_packet_is_video() and media_packet_is_raw() or media_packet_has_tbm_surface_buffer().
  *
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  *
  * @remarks The @c plane_data_ptr must not be released by using free(). Note that It is released by media_packet_destory() or tbm_surface_destroy().
  * @param[in]  packet   The media packet handle
@@ -917,7 +922,8 @@ int media_packet_get_video_plane_data_ptr(media_packet_h packet, int plane_idx, 
 
 /**
  * @brief Gets codec data and the codec data size of media packet.
- * @since_tizen 2.4
+ *
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  *
  * @param[in] packet   The media packet handle
  * @param[out] codec_data    The codec data to get
@@ -934,7 +940,8 @@ int media_packet_get_codec_data(media_packet_h packet, void **codec_data, unsign
 /**
  * @brief Destroys the media packet handle.
  * @details  The registered finalize_callback() function will be invoked to destroy the media packet handle.
- * @since_tizen 2.3
+ *
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in] packet  The handle to media packet to be destroyed
  *
