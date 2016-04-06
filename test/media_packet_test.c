@@ -938,9 +938,9 @@ void _interpret_main_menu(char *cmd)
 {
 	int len = strlen(cmd);
 	if (len == 1) {
-		if (strncmp(cmd, "a", 1) == 0) {
+		if (strncmp(cmd, "a", 1) == 0)
 			_media_packet_create_alloc();
-		} else if (strncmp(cmd, "d", 1) == 0) {
+		else if (strncmp(cmd, "d", 1) == 0) {
 			_media_packet_destroy();
 		} else if (strncmp(cmd, "b", 1) == 0) {
 			_media_packet_create_from_tbm_surface();
@@ -950,9 +950,9 @@ void _interpret_main_menu(char *cmd)
 			quit_program();
 		}
 	} else if (len == 2) {
-		if (strncmp(cmd, "aa", 2) == 0) {
+		if (strncmp(cmd, "aa", 2) == 0)
 			_media_packet_create();
-		} else if (strncmp(cmd, "ab", 2) == 0) {
+		else if (strncmp(cmd, "ab", 2) == 0) {
 			_media_packet_alloc();
 		} else if (strncmp(cmd, "iv", 2) == 0) {
 			_media_packet_is_video();
@@ -985,9 +985,9 @@ void _interpret_main_menu(char *cmd)
 		}
 
 	} else if (len == 3) {
-		if (strncmp(cmd, "gbp", 3) == 0) {
+		if (strncmp(cmd, "gbp", 3) == 0)
 			_media_packet_get_buffer_data_ptr();
-		} else if (strncmp(cmd, "gts", 3) == 0) {
+		else if (strncmp(cmd, "gts", 3) == 0) {
 			_media_packet_get_tbm_surface();
 		} else if (strncmp(cmd, "fgv", 3) == 0) {
 			_media_format_get_video_info();
@@ -1027,9 +1027,9 @@ void _interpret_main_menu(char *cmd)
 			_media_packet_get_codec_data();
 		}
 	} else if (len == 4) {
-		if (strncmp(cmd, "fraw", 4) == 0) {
+		if (strncmp(cmd, "fraw", 4) == 0)
 			_create_format_raw();
-		} else if (strncmp(cmd, "fes2", 4) == 0) {
+		else if (strncmp(cmd, "fes2", 4) == 0) {
 			_create_format_320_240_es();
 		} else if (strncmp(cmd, "svab", 4) == 0) {
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_VIDEO_AVG_BPS;
@@ -1041,13 +1041,11 @@ void _interpret_main_menu(char *cmd)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_TYPE;
 		}
 	} else if (len == 5) {
-		if (strncmp(cmd, "saaht", 5) == 0) {
+		if (strncmp(cmd, "saaht", 5) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_HEADER_TYPE;
-		}
 	} else if (len == 6) {
-		if (strncmp(cmd, "fgaaht", 6) == 0) {
+		if (strncmp(cmd, "fgaaht", 6) == 0)
 			_media_format_get_audio_aac_header_type();
-		}
 	}
 }
 
