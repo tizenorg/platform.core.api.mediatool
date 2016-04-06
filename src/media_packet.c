@@ -27,13 +27,11 @@
 /* NOTE : static internal functions does not check anything on incomming parameters
  * Caller should takecare it
  */
-static int _pkt_alloc_buffer(media_packet_s *pkt);
 static uint64_t _pkt_calculate_video_buffer_size(media_packet_s *pkt);
 static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s *pkt);
 static uint64_t _pkt_calculate_text_buffer_size(media_packet_s *pkt);
 static uint32_t _convert_to_tbm_surface_format(media_format_mimetype_e format_type);
 static void *_aligned_malloc_normal_buffer_type(uint64_t size, int alignment);
-static void _aligned_free_normal_buffer_type(void *buffer_ptr);
 
 int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet)
 {
@@ -1268,6 +1266,11 @@ int media_packet_destroy(media_packet_h packet)
 
 	handle = (media_packet_s *)packet;
 
+	if (handle->using_pool) {
+		LOGE("packet is being used by pool, release can be done by pool only");
+		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
+	}
+
 	/* finailize callback */
 	if (handle->finalizecb_func) {
 		int finalize_cb_ret;
@@ -1382,7 +1385,7 @@ static void *_aligned_malloc_normal_buffer_type(uint64_t size, int alignment)
 	return NULL;
 }
 
-static void _aligned_free_normal_buffer_type(void *buffer_ptr)
+void _aligned_free_normal_buffer_type(void *buffer_ptr)
 {
 	unsigned char *ptr;
 	if (buffer_ptr == NULL)
