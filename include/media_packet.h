@@ -29,9 +29,6 @@
 extern "C" {
 #endif
 
-#ifndef TIZEN_ERROR_MEDIA_TOOL
-#define TIZEN_ERROR_MEDIA_TOOL  -0x000033333
-#endif
 /**
  * @file media_packet.h
  * @brief This file contains the capi media tool API.
