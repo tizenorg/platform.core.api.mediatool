@@ -1305,11 +1305,6 @@ int media_packet_destroy(media_packet_h packet)
 
 	handle = (media_packet_s *)packet;
 
-	if (handle->using_pool) {
-		LOGE("packet is being used by pool, release can be done by pool only");
-		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
-	}
-
 	/* finailize callback */
 	if (handle->finalizecb_func) {
 		int finalize_cb_ret;
