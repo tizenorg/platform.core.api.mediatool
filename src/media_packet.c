@@ -336,6 +336,33 @@ int _pkt_alloc_buffer(media_packet_s *pkt)
 	return MEDIA_PACKET_ERROR_NONE;
 }
 
+int _pkt_dealloc_buffer(media_packet_s *handle)
+{
+	if (handle->type == MEDIA_BUFFER_TYPE_TBM_SURFACE) {
+		if (handle->surface_data)
+			tbm_surface_destroy((tbm_surface_h)handle->surface_data);
+	} else if (handle->type == MEDIA_BUFFER_TYPE_NORMAL) {
+		if (handle->data) {
+			_aligned_free_normal_buffer_type(handle->data);
+			handle->data = NULL;
+		}
+	} else if (handle->type == MEDIA_BUFFER_TYPE_EXTERNAL_TBM_SURFACE || handle->type == MEDIA_BUFFER_TYPE_EXTERNAL_MEMORY) {
+		/* there is nothing to do, Do not free the buffer which is created by external module. */
+	} else {
+		LOGE("Invalied buffer type");
+		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
+	}
+
+	/* free codec_data if it is allocated */
+	if (handle->codec_data) {
+		free(handle->codec_data);
+		handle->codec_data = NULL;
+		handle->codec_data_size = 0;
+	}
+
+	return MEDIA_PACKET_ERROR_NONE;
+}
+
 int _pkt_reset_buffer(media_packet_h packet)
 {
 	int i;
@@ -354,9 +381,8 @@ int _pkt_reset_buffer(media_packet_h packet)
 			tbm_surface_info_s surface_info;
 			int err = tbm_surface_get_info((tbm_surface_h)handle->surface_data, &surface_info);
 			if (err == TBM_SURFACE_ERROR_NONE) {
-				for (i = 0; i < surface_info.num_planes; i++) {
+				for (i = 0; i < surface_info.num_planes; i++)
 					memset(surface_info.planes[i].ptr, 0x0, surface_info.planes[i].size);
-				}
 			}
 		} else {
 			LOGE("tbm_surface_get_info() is failed.");
@@ -1305,11 +1331,6 @@ int media_packet_destroy(media_packet_h packet)
 
 	handle = (media_packet_s *)packet;
 
-	if (handle->using_pool) {
-		LOGE("packet is being used by pool, release can be done by pool only");
-		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
-	}
-
 	/* finailize callback */
 	if (handle->finalizecb_func) {
 		int finalize_cb_ret;
@@ -1322,25 +1343,11 @@ int media_packet_destroy(media_packet_h packet)
 		}
 	}
 
-	if (handle->type == MEDIA_BUFFER_TYPE_TBM_SURFACE) {
-		if (handle->surface_data)
-			tbm_surface_destroy((tbm_surface_h)handle->surface_data);
-	} else if (handle->type == MEDIA_BUFFER_TYPE_NORMAL) {
-		if (handle->data) {
-			_aligned_free_normal_buffer_type(handle->data);
-			handle->data = NULL;
-		}
-	} else if (handle->type == MEDIA_BUFFER_TYPE_EXTERNAL_TBM_SURFACE || handle->type == MEDIA_BUFFER_TYPE_EXTERNAL_MEMORY) {
-		/* there is nothing to do, Do not free the buffer which is created by external module. */
+	ret = _pkt_dealloc_buffer(handle);
+	if (ret != MEDIA_PACKET_ERROR_NONE) {
+		LOGE("[%s] failed _pkt_dealloc_buffer(), err = (0x%08x)", __FUNCTION__, ret);
+		return ret;
 	}
-
-	/* free codec_data if it is allocated */
-	if (handle->codec_data) {
-		free(handle->codec_data);
-		handle->codec_data = NULL;
-		handle->codec_data_size = 0;
-	}
-
 	/* unreference media_format */
 	media_format_unref(handle->format);
 

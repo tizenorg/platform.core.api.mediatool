@@ -18,19 +18,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dlog.h>
-#include <media_packet_pool.h>
 #include <media_format.h>
 #include <media_packet.h>
-#include <media_packet_private.h>
+#include <media_packet_pool.h>
 #include <media_packet_pool_private.h>
-#include <media_format_private.h>
+
+static gboolean _is_packet_in_queue(media_packet_pool_s *pool_handle, media_packet_h packet);
+static int _packet_finalize_cb(media_packet_h packet, int error_code, void *user_data);
 
 int media_packet_pool_create(media_packet_pool_h * pool)
 {
 	int ret = MEDIA_PACKET_ERROR_NONE;
 	media_packet_pool_s *pool_handle = NULL;
 
-	MEDIA_PACKET_INSTANCE_CHECK(pool)
+	MEDIA_PACKET_POOL_INSTANCE_CHECK(pool);
 
 	pool_handle = (media_packet_pool_s *) malloc(sizeof(media_packet_pool_s));
 	if (pool_handle != NULL)
@@ -60,26 +61,22 @@ int media_packet_pool_set_media_format(media_packet_pool_h pool, media_format_h 
 {
 	int ret = MEDIA_PACKET_ERROR_NONE;
 	media_packet_pool_s *pool_handle = NULL;
+	gboolean is_writable = false;
 
-	MEDIA_PACKET_INSTANCE_CHECK(pool);
-	MEDIA_PACKET_NULL_ARG_CHECK(fmt);
+	MEDIA_PACKET_POOL_INSTANCE_CHECK(pool);
+	MEDIA_PACKET_POOL_NULL_ARG_CHECK(fmt);
 
-	if (MEDIA_FORMAT_GET_REFCOUNT(fmt) < 1) {
+	media_format_is_writable(fmt, &is_writable);
+	if (!is_writable) {
 		LOGE("The media format handle is corrupted or Not set media info");
 		return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
 	}
-
-	if (!MEDIA_FORMAT_IS_VIDEO(fmt) && !MEDIA_FORMAT_IS_AUDIO(fmt)) {
-		LOGE("The media format handle is not specified. set video info or audio info...");
-		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
-	}
-
 	pool_handle = (media_packet_pool_s *) pool;
 
 	/* increase format reference count */
 	media_format_ref(fmt);
 
-	pool_handle->fmt_h = MEDIA_FORMAT_CAST(fmt);
+	pool_handle->fmt_h = fmt;
 	return ret;
 }
 
@@ -88,7 +85,7 @@ int media_packet_pool_set_size(media_packet_pool_h pool, int min_buffers, int ma
 	int ret = MEDIA_PACKET_ERROR_NONE;
 	media_packet_pool_s *pool_handle = NULL;
 
-	MEDIA_PACKET_INSTANCE_CHECK(pool);
+	MEDIA_PACKET_POOL_INSTANCE_CHECK(pool);
 	pool_handle = (media_packet_pool_s *) pool;
 
 	if (max_buffers < 0 || min_buffers < 0 || min_buffers > max_buffers)
@@ -105,7 +102,7 @@ int media_packet_pool_get_size(media_packet_pool_h pool, int *min_size, int *max
 	int ret = MEDIA_PACKET_ERROR_NONE;
 	media_packet_pool_s *pool_handle = NULL;
 
-	MEDIA_PACKET_INSTANCE_CHECK(pool);
+	MEDIA_PACKET_POOL_INSTANCE_CHECK(pool);
 	pool_handle = (media_packet_pool_s *) pool;
 
 	*curr_size = pool_handle->curr_pool_size;
@@ -115,78 +112,26 @@ int media_packet_pool_get_size(media_packet_pool_h pool, int *min_size, int *max
 
 }
 
-int _allocate_pkt(media_packet_pool_h pool)
+int _packet_finalize_cb(media_packet_h packet, int error_code, void *user_data)
 {
 	int ret = MEDIA_PACKET_ERROR_NONE;
-	int i, num_pkts = 0;
-
+	media_packet_pool_h pool = NULL;
 	media_packet_pool_s *pool_handle = NULL;
-	media_packet_s *pkt_handle = NULL;
-	media_format_s *fmt_handle = NULL;
 
-	MEDIA_PACKET_INSTANCE_CHECK(pool);
-	pool_handle = (media_packet_pool_s *) pool;
-	fmt_handle = (media_format_s *) pool_handle->fmt_h;
-	MEDIA_PACKET_NULL_ARG_CHECK(fmt_handle);
+	pool = (media_packet_pool_h)user_data;
+	pool_handle = (media_packet_pool_s *)pool;
 
-	if (pool_handle->curr_pool_size >= pool_handle->max_pool_size) {
-		LOGE("The media packet pool is full..");
-		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
+	if (pool_handle->pool_allocated) {
+		if (media_packet_pool_release_packet(pool, packet) != MEDIA_PACKET_ERROR_NONE) {
+			LOGE("media packet doesn't release");
+			pool_handle->curr_pool_size--;
+			return MEDIA_PACKET_FINALIZE;
+		}
+		return MEDIA_PACKET_REUSE;
 
+	} else {
+		return MEDIA_PACKET_FINALIZE;
 	}
-
-	pkt_handle = (media_packet_s *) malloc(sizeof(media_packet_s));
-
-	if (pkt_handle != NULL)
-		memset(pkt_handle, 0, sizeof(media_packet_s));
-	else {
-		LOGE("out of memory");
-		ret = MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
-		goto fail;
-	}
-
-	if (MEDIA_FORMAT_IS_VIDEO(fmt_handle) && MEDIA_FORMAT_IS_RAW(fmt_handle))
-		pkt_handle->type = MEDIA_BUFFER_TYPE_TBM_SURFACE;
-	else
-		pkt_handle->type = MEDIA_BUFFER_TYPE_NORMAL;
-
-	LOGI("The created packet handle(%p) is..", pkt_handle);
-
-	/* take fmt */
-	pkt_handle->format = MEDIA_FORMAT_CAST(fmt_handle);
-
-	/* alloc buffer */
-	int err = _pkt_alloc_buffer(pkt_handle);
-	if (err != MEDIA_PACKET_ERROR_NONE) {
-		LOGE("failed _pkt_alloc_buffer(), err = (0x%08x)", err);
-		ret = err;
-		goto fail;
-	}
-
-	/* allocated buffer */
-	pkt_handle->is_allocated = true;
-
-	/* set finalized callback and user data */
-	pkt_handle->finalizecb_func = NULL;
-	pkt_handle->userdata = NULL;
-
-	/* increase format reference count */
-	media_format_ref((media_format_h) pkt_handle->format);
-
-	pkt_handle->using_pool = true;
-	/* push the packet handle into queue */
-	g_queue_push_tail(pool_handle->queue, pkt_handle);
-	pool_handle->curr_pool_size++;
-
-	return ret;
-
- fail:
-	if (pkt_handle) {
-		free(pkt_handle);
-		pkt_handle = NULL;
-	}
-
-	return ret;
 }
 
 int media_packet_pool_allocate(media_packet_pool_h pool)
@@ -195,13 +140,9 @@ int media_packet_pool_allocate(media_packet_pool_h pool)
 	int i, num_pkts = 0;
 
 	media_packet_pool_s *pool_handle = NULL;
-	media_packet_s *pkt_handle = NULL;
-	media_format_s *fmt_handle = NULL;
 
-	MEDIA_PACKET_INSTANCE_CHECK(pool);
+	MEDIA_PACKET_POOL_INSTANCE_CHECK(pool);
 	pool_handle = (media_packet_pool_s *) pool;
-	fmt_handle = (media_format_s *) pool_handle->fmt_h;
-	MEDIA_PACKET_NULL_ARG_CHECK(fmt_handle);
 
 	if (!(pool_handle->pool_created)) {
 		LOGE("The media packet pool is not created..");
@@ -225,30 +166,19 @@ int media_packet_pool_allocate(media_packet_pool_h pool)
 		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 
 	}
-	for (i = pool_handle->curr_pool_size; i < pool_handle->min_pool_size; i++) {
-		if (_allocate_pkt(pool_handle) != MEDIA_PACKET_ERROR_NONE) {
+
+	for (i = 0; i < pool_handle->min_pool_size; i++) {
+		if (media_packet_create_alloc(pool_handle->fmt_h, _packet_finalize_cb, pool_handle, &pool_handle->packet[i]) != MEDIA_PACKET_ERROR_NONE) {
 			LOGE("The media packet pool is full or out of memory...");
 			return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 		}
+		g_queue_push_tail(pool_handle->queue, pool_handle->packet[i]);
+		LOGD("[%d]%p queued", i, pool_handle->packet[i]);
+		pool_handle->curr_pool_size++;
 
-	}
-	pool_handle->pool_allocated = true;
-	return ret;
-
- fail:
-	if (pkt_handle) {
-		free(pkt_handle);
-		pkt_handle = NULL;
-	}
-
-	while (!g_queue_is_empty(pool_handle->queue)) {
-
-		pkt_handle = g_queue_pop_head(pool_handle->queue);
-		if (pkt_handle) {
-			free(pkt_handle);
-			pkt_handle = NULL;
 		}
-	}
+		pool_handle->pool_allocated = true;
+
 	return ret;
 }
 
@@ -256,9 +186,9 @@ int media_packet_pool_acquire_packet(media_packet_pool_h pool, media_packet_h * 
 {
 	int ret = MEDIA_PACKET_ERROR_NONE;
 	media_packet_pool_s *pool_handle = NULL;
-	media_packet_s *pkt_handle = NULL;
+	media_packet_h packet = NULL;
 	gint64 wait_until = -1;
-	MEDIA_PACKET_INSTANCE_CHECK(pool);
+	MEDIA_PACKET_POOL_INSTANCE_CHECK(pool);
 	pool_handle = (media_packet_pool_s *) pool;
 
 	if (timeout != -1) {
@@ -279,32 +209,33 @@ int media_packet_pool_acquire_packet(media_packet_pool_h pool, media_packet_h * 
 
 	g_mutex_lock(&pool_handle->mutex);
 	while (TRUE) {
-		pkt_handle = g_queue_pop_head(pool_handle->queue);
+		packet = g_queue_pop_head(pool_handle->queue);
 
-		if (pkt_handle)
+		if (packet)
 			break;
 
 		if (pool_handle->curr_pool_size < pool_handle->max_pool_size) {
-			LOGI("no buffer, trying to allocate");
+			LOGD("no buffer, trying to allocate");
 
-			if (_allocate_pkt(pool_handle) != MEDIA_PACKET_ERROR_NONE) {
-				LOGE("failed in _allocate_pkt ");
-				g_mutex_unlock(&pool_handle->mutex);
+			if (media_packet_create_alloc(pool_handle->fmt_h, _packet_finalize_cb, pool_handle, &pool_handle->packet[pool_handle->curr_pool_size]) != MEDIA_PACKET_ERROR_NONE) {
+				LOGE("The media packet pool is full or out of memory...");
 				return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 			}
-			pkt_handle = g_queue_pop_head(pool_handle->queue);
+			packet = pool_handle->packet[pool_handle->curr_pool_size];
+			pool_handle->curr_pool_size++;
+
 			break;
 		} else if (timeout == -1) {
-			LOGE("Queue is empty, waiting for till release is done");
+			LOGD("Queue is empty, waiting for till release is done");
 			g_cond_wait(&pool_handle->queue_cond, &pool_handle->mutex);
-			pkt_handle = g_queue_pop_head(pool_handle->queue);
+			packet = g_queue_pop_head(pool_handle->queue);
 			break;
 
 		} else {
 			g_cond_wait_until(&pool_handle->queue_cond, &pool_handle->mutex, wait_until);
-			LOGI("Queue is Empty, waiting for timeout %" G_GSIZE_FORMAT "", wait_until);
-			pkt_handle = g_queue_pop_head(pool_handle->queue);
-			if (!pkt_handle) {
+			LOGD("Queue is Empty, waiting for timeout %" G_GSIZE_FORMAT "", wait_until);
+			packet = g_queue_pop_head(pool_handle->queue);
+			if (!packet) {
 				LOGE("pkt is null");
 				ret = MEDIA_PACKET_ERROR_NO_AVAILABLE_PACKET;
 			}
@@ -312,30 +243,35 @@ int media_packet_pool_acquire_packet(media_packet_pool_h pool, media_packet_h * 
 		}
 	}
 
-	*pkt = (media_packet_h) pkt_handle;
+	*pkt = (media_packet_h) packet;
 	g_mutex_unlock(&pool_handle->mutex);
-	LOGI("The packet handle aquired from pool is  %p..", pkt_handle);
+	LOGD("The packet handle aquired from pool is  %p..", packet);
 	return ret;
 
 }
 
+gboolean _is_packet_in_queue(media_packet_pool_s *pool_handle, media_packet_h packet)
+{
+	int i;
+	for (i = 0; i < pool_handle->curr_pool_size; i++) {
+		if (pool_handle->packet[i] == packet)
+			return true;
+	}
+	return false;
+}
 
 int media_packet_pool_release_packet(media_packet_pool_h pool, media_packet_h pkt)
 {
 	int ret = MEDIA_PACKET_ERROR_NONE;
 	int num_pkts = 0;
 	media_packet_pool_s *pool_handle = NULL;
-	media_packet_s *pkt_handle = NULL;
 
-	MEDIA_PACKET_INSTANCE_CHECK(pool);
+	MEDIA_PACKET_POOL_INSTANCE_CHECK(pool);
 	pool_handle = (media_packet_pool_s *) pool;
-	pkt_handle = (media_packet_s*) pkt;
 
-	ret = _pkt_reset_buffer(pkt);
-	if (ret != MEDIA_PACKET_ERROR_NONE) {
-		LOGE("[%s] failed _pkt_alloc_buffer(), err = (0x%08x)", __FUNCTION__, ret);
-		return ret;
-	}
+	media_packet_unset_flags(pkt, MEDIA_PACKET_CODEC_CONFIG);
+	media_packet_unset_flags(pkt, MEDIA_PACKET_END_OF_STREAM);
+	media_packet_unset_flags(pkt, MEDIA_PACKET_SYNC_FRAME);
 
 	g_mutex_lock(&pool_handle->mutex);
 	num_pkts = g_queue_get_length(pool_handle->queue);
@@ -346,14 +282,14 @@ int media_packet_pool_release_packet(media_packet_pool_h pool, media_packet_h pk
 		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 	}
 
-	if (pkt_handle->using_pool) {
-		LOGI("The packet released to pool is  %p..\n", pkt_handle);
+	if (_is_packet_in_queue(pool_handle, pkt)) {
 		g_mutex_lock(&pool_handle->mutex);
-		g_queue_push_tail(pool_handle->queue, pkt_handle);
+		g_queue_push_tail(pool_handle->queue, pkt);
 		g_mutex_unlock(&pool_handle->mutex);
 		g_cond_signal(&pool_handle->queue_cond);
+		LOGD("The packet released to pool is  %p..\n", pkt);
 	} else {
-		LOGE("packet is not aquired from pool");
+		LOGE("packet is not aquired from pool %p", pkt);
 		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 	}
 
@@ -365,9 +301,9 @@ int media_packet_pool_deallocate(media_packet_pool_h pool)
 	int ret = MEDIA_PACKET_ERROR_NONE;
 	int i, num_pkts = 0;
 	media_packet_pool_s *pool_handle = NULL;
-	media_packet_s *pkt_handle = NULL;
+	media_packet_h packet = NULL;
 
-	MEDIA_PACKET_INSTANCE_CHECK(pool);
+	MEDIA_PACKET_POOL_INSTANCE_CHECK(pool);
 	pool_handle = (media_packet_pool_s *) pool;
 
 	if (!(pool_handle->pool_created))
@@ -382,22 +318,25 @@ int media_packet_pool_deallocate(media_packet_pool_h pool)
 		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 	}
 
+	pool_handle->pool_allocated = false;
+
 	g_mutex_lock(&pool_handle->mutex);
 	while (!g_queue_is_empty(pool_handle->queue)) {
 
-		pkt_handle = g_queue_pop_head(pool_handle->queue);
-		g_mutex_unlock(&pool_handle->mutex);
-		if (pkt_handle == NULL) {
+		packet = g_queue_pop_head(pool_handle->queue);
+		if (packet == NULL) {
 			LOGE("Failed to get packet handle from Queue ");
 			return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 		}
-		pkt_handle = (media_packet_h) pkt_handle;
-		pkt_handle->using_pool = false;
-		LOGI("The packet handle(%p) will be deallocated..", pkt_handle);
-		ret = media_packet_destroy(pkt_handle);
-		g_mutex_lock(&pool_handle->mutex);
+		ret = media_packet_destroy(packet);
+		LOGI("The packet handle(%p) will be deallocated..", packet);
+		if (ret != MEDIA_PACKET_ERROR_NONE) {
+			g_mutex_unlock(&pool_handle->mutex);
+			return ret;
+		}
 	}
 	g_mutex_unlock(&pool_handle->mutex);
+
 	return ret;
 }
 
@@ -407,9 +346,8 @@ int media_packet_pool_destroy(media_packet_pool_h pool)
 	int num_pkts = 0;
 
 	media_packet_pool_s *pool_handle = NULL;
-	media_packet_s *pkt_handle = NULL;
 
-	MEDIA_PACKET_INSTANCE_CHECK(pool);
+	MEDIA_PACKET_POOL_INSTANCE_CHECK(pool);
 	pool_handle = (media_packet_pool_s *) pool;
 
 	if (!(pool_handle->pool_created))
@@ -424,6 +362,7 @@ int media_packet_pool_destroy(media_packet_pool_h pool)
 		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 
 	}
+
 	/* unreference media_format */
 	media_format_unref(pool_handle->fmt_h);
 	g_queue_free(pool_handle->queue);
