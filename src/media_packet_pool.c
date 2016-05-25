@@ -25,12 +25,14 @@
 #include <media_packet_pool_private.h>
 #include <media_format_private.h>
 
+static int _packet_finalize_cb(media_packet_h packet, int error_code, void *user_data);
+
 int media_packet_pool_create(media_packet_pool_h * pool)
 {
 	int ret = MEDIA_PACKET_ERROR_NONE;
 	media_packet_pool_s *pool_handle = NULL;
 
-	MEDIA_PACKET_INSTANCE_CHECK(pool)
+	MEDIA_PACKET_NULL_ARG_CHECK(pool);
 
 	pool_handle = (media_packet_pool_s *) malloc(sizeof(media_packet_pool_s));
 	if (pool_handle != NULL)
@@ -115,6 +117,21 @@ int media_packet_pool_get_size(media_packet_pool_h pool, int *min_size, int *max
 
 }
 
+int _packet_finalize_cb(media_packet_h packet, int error_code, void *user_data)
+{
+	int ret = MEDIA_PACKET_ERROR_NONE;
+	media_packet_pool_h pool;
+
+	pool = (media_packet_pool_h)user_data;
+
+	ret = media_packet_pool_release_packet(pool, packet);
+	if (ret == MEDIA_PACKET_ERROR_NONE)
+		return MEDIA_PACKET_REUSE;
+	else
+		return MEDIA_PACKET_FINALIZE;
+}
+
+
 int _allocate_pkt(media_packet_pool_h pool)
 {
 	int ret = MEDIA_PACKET_ERROR_NONE;
@@ -167,8 +184,8 @@ int _allocate_pkt(media_packet_pool_h pool)
 	pkt_handle->is_allocated = true;
 
 	/* set finalized callback and user data */
-	pkt_handle->finalizecb_func = NULL;
-	pkt_handle->userdata = NULL;
+	pkt_handle->finalizecb_func = _packet_finalize_cb;
+	pkt_handle->userdata = pool;
 
 	/* increase format reference count */
 	media_format_ref((media_format_h) pkt_handle->format);
@@ -328,6 +345,7 @@ int media_packet_pool_release_packet(media_packet_pool_h pool, media_packet_h pk
 	media_packet_s *pkt_handle = NULL;
 
 	MEDIA_PACKET_INSTANCE_CHECK(pool);
+	MEDIA_PACKET_NULL_ARG_CHECK(pkt);
 	pool_handle = (media_packet_pool_s *) pool;
 	pkt_handle = (media_packet_s*) pkt;
 
@@ -365,6 +383,7 @@ int media_packet_pool_deallocate(media_packet_pool_h pool)
 	int ret = MEDIA_PACKET_ERROR_NONE;
 	int i, num_pkts = 0;
 	media_packet_pool_s *pool_handle = NULL;
+	media_packet_h packet = NULL;
 	media_packet_s *pkt_handle = NULL;
 
 	MEDIA_PACKET_INSTANCE_CHECK(pool);
@@ -385,19 +404,24 @@ int media_packet_pool_deallocate(media_packet_pool_h pool)
 	g_mutex_lock(&pool_handle->mutex);
 	while (!g_queue_is_empty(pool_handle->queue)) {
 
-		pkt_handle = g_queue_pop_head(pool_handle->queue);
-		g_mutex_unlock(&pool_handle->mutex);
-		if (pkt_handle == NULL) {
+		packet = g_queue_pop_head(pool_handle->queue);
+		if (packet == NULL) {
 			LOGE("Failed to get packet handle from Queue ");
 			return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 		}
-		pkt_handle = (media_packet_h) pkt_handle;
+		pkt_handle = (media_packet_s *) packet;
 		pkt_handle->using_pool = false;
-		LOGI("The packet handle(%p) will be deallocated..", pkt_handle);
-		ret = media_packet_destroy(pkt_handle);
-		g_mutex_lock(&pool_handle->mutex);
+		LOGI("The packet handle(%p) will be deallocated..", packet);
+		ret = _pkt_dealloc_buffer(pkt_handle);
+		if (ret != MEDIA_PACKET_ERROR_NONE) {
+			g_mutex_unlock(&pool_handle->mutex);
+			return ret;
+		}
+
+		media_format_unref(pkt_handle->format);
 	}
 	g_mutex_unlock(&pool_handle->mutex);
+
 	return ret;
 }
 
