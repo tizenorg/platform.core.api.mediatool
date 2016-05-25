@@ -132,6 +132,7 @@ typedef struct _media_packet_s {
 
 int _pkt_alloc_buffer(media_packet_s *pkt);
 int _pkt_reset_buffer(media_packet_h packet);
+int _pkt_dealloc_buffer(media_packet_s *pkt);
 void _aligned_free_normal_buffer_type(void *buffer_ptr);
 
 #ifdef __cplusplus
