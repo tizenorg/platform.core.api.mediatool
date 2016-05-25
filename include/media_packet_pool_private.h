@@ -17,12 +17,24 @@
 #define __TIZEN_MEDIA_PACKET_POOL_PRIVATE_H__
 
 #include <media_format.h>
+#include <media_packet.h>
 #include <glib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#define MAX_PACKET	25
+
+#define MEDIA_PACKET_POOL_CHECK_CONDITION(condition, error, msg)     \
+                if (condition) {} else \
+                { LOGE("[%s] %s(0x%08x)", __FUNCTION__, msg, error); return error; }; \
+
+#define MEDIA_PACKET_POOL_INSTANCE_CHECK(pool)   \
+        MEDIA_PACKET_POOL_CHECK_CONDITION(pool != NULL, MEDIA_PACKET_ERROR_INVALID_PARAMETER, "MEDIA_PACKET_ERROR_INVALID_PARAMETER")
+
+#define MEDIA_PACKET_POOL_NULL_ARG_CHECK(arg)      \
+        MEDIA_PACKET_POOL_CHECK_CONDITION(arg != NULL, MEDIA_PACKET_ERROR_INVALID_PARAMETER, "MEDIA_PACKET_ERROR_INVALID_PARAMETER")
 /**
  * @brief  The Media Packet Pool structure.
  * @since_tizen 3.0
@@ -37,6 +49,7 @@ typedef struct _media_packet_pool_s {
 	bool pool_created;
 	bool pool_allocated;
 	media_format_h fmt_h;
+	media_packet_h packet[MAX_PACKET];
 } media_packet_pool_s;
 
 #ifdef __cplusplus
