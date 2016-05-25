@@ -16,6 +16,7 @@
 #ifndef __TIZEN_MEDIA_PACKET_POOL_H__
 #define __TIZEN_MEDIA_PACKET_POOL_H__
 
+#include <glib.h>
 #include <media_format.h>
 #include <media_packet.h>
 #ifdef __cplusplus
