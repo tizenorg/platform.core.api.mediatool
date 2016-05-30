@@ -368,6 +368,8 @@ int media_packet_pool_deallocate(media_packet_pool_h pool)
 	media_packet_s *pkt_handle = NULL;
 
 	MEDIA_PACKET_INSTANCE_CHECK(pool);
+	MEDIA_PACKET_NULL_ARG_CHECK(pool);
+
 	pool_handle = (media_packet_pool_s *) pool;
 
 	if (!(pool_handle->pool_created))
