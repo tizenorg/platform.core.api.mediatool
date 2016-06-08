@@ -61,22 +61,23 @@ int media_packet_pool_set_media_format(media_packet_pool_h pool, media_format_h 
 {
 	int ret = MEDIA_PACKET_ERROR_NONE;
 	media_packet_pool_s *pool_handle = NULL;
-	gboolean is_writable = false;
+	media_format_type_e type;
 
 	MEDIA_PACKET_POOL_INSTANCE_CHECK(pool);
 	MEDIA_PACKET_POOL_NULL_ARG_CHECK(fmt);
 
-	media_format_is_writable(fmt, &is_writable);
-	if (!is_writable) {
-		LOGE("The media format handle is corrupted or Not set media info");
-		return MEDIA_PACKET_ERROR_INVALID_PARAMETER;
+	ret = media_format_get_type(fmt, &type);
+	if (ret == MEDIA_FORMAT_ERROR_INVALID_OPERATION || type == MEDIA_FORMAT_CONTAINER || type == MEDIA_FORMAT_TEXT) {
+		LOGE("Invaild media format");
+		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 	}
+
 	pool_handle = (media_packet_pool_s *) pool;
 
 	/* increase format reference count */
 	media_format_ref(fmt);
-
 	pool_handle->fmt_h = fmt;
+
 	return ret;
 }
 
