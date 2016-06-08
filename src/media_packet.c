@@ -27,11 +27,11 @@
 /* NOTE : static internal functions does not check anything on incomming parameters
  * Caller should takecare it
  */
-static uint64_t _pkt_calculate_video_buffer_size(media_packet_s *pkt);
-static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s *pkt);
-static uint64_t _pkt_calculate_text_buffer_size(media_packet_s *pkt);
+static size_t _pkt_calculate_video_buffer_size(media_packet_s *pkt);
+static size_t _pkt_calculate_audio_buffer_size(media_packet_s *pkt);
+static size_t _pkt_calculate_text_buffer_size(media_packet_s *pkt);
 static uint32_t _convert_to_tbm_surface_format(media_format_mimetype_e format_type);
-static void *_aligned_malloc_normal_buffer_type(uint64_t size, int alignment);
+static void *_aligned_malloc_normal_buffer_type(size_t size, int alignment);
 
 int media_packet_create_alloc(media_format_h fmt, media_packet_finalize_cb fcb, void *fcb_data, media_packet_h *packet)
 {
@@ -243,38 +243,21 @@ fail:
 int _pkt_alloc_buffer(media_packet_s *pkt)
 {
 	/* skip validating pkt */
-	uint64_t buffersize = 0;
-
-	/* need to use format,width,height to get buffer size for raw video frame */
-	if (pkt->type == MEDIA_BUFFER_TYPE_TBM_SURFACE) {
-		buffersize = _pkt_calculate_video_buffer_size(pkt);
-		pkt->size = buffersize;
-		/* NOTE : size of buffer may not equal to w*h*bpp. Not sure we need to
-		 * do some verifying between given size and calculated size.
-		 */
-	} else {
-		buffersize = pkt->size;
-	}
+	size_t buffersize = 0;
 
 	if (pkt->type == MEDIA_BUFFER_TYPE_NORMAL) {
 		/* need to use format,width,height to get buffer size */
 		if (MEDIA_FORMAT_IS_VIDEO(pkt->format)) {
 			buffersize = _pkt_calculate_video_buffer_size(pkt);
-			/* 16bytes aligned malloc */
-			pkt->data = _aligned_malloc_normal_buffer_type(buffersize, 16);
-			if (!pkt->data)
-				return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
 		} else if (MEDIA_FORMAT_IS_AUDIO(pkt->format)) {
 			buffersize = _pkt_calculate_audio_buffer_size(pkt);
-			pkt->data = (void *)malloc(buffersize);
-			if (!pkt->data)
-				return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
 		} else {
 			buffersize = _pkt_calculate_text_buffer_size(pkt);
-			pkt->data = (void *)malloc(buffersize);
-			if (!pkt->data)
-				return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
 		}
+		/* 16bytes aligned malloc */
+		pkt->data = _aligned_malloc_normal_buffer_type(buffersize, 16);
+		if (!pkt->data)
+			return MEDIA_PACKET_ERROR_OUT_OF_MEMORY;
 		pkt->size = buffersize;
 	} else if (pkt->type == MEDIA_BUFFER_TYPE_TBM_SURFACE) {
 
@@ -320,8 +303,8 @@ int _pkt_alloc_buffer(media_packet_s *pkt)
 			int err = tbm_surface_get_info((tbm_surface_h)pkt->surface_data, &surface_info);
 			if (err == TBM_SURFACE_ERROR_NONE) {
 				pkt->data = surface_info.planes[0].ptr;
-				pkt->size = (uint64_t)surface_info.size;
-				LOGD("tbm_surface_created, pkt->size = %llu\n", pkt->size);
+				pkt->size = (size_t)surface_info.size;
+				LOGD("tbm_surface_created, pkt->size = %d\n", pkt->size);
 			} else {
 				LOGE("tbm_surface_get_info() is failed.. err = 0x%08x \n", err);
 				tbm_surface_destroy((tbm_surface_h)pkt->surface_data);
@@ -401,20 +384,19 @@ int _pkt_reset_buffer(media_packet_h packet)
 	return ret;
 }
 
+#define BUFFER_PADDING_SIZE	8
 #define _ROUND_UP_16(num) (((num)+15)&~15)
 #define _GEN_MASK(x) ((1<<(x))-1)
 #define _ROUND_UP_X(v, x) (((v) + _GEN_MASK(x)) & ~_GEN_MASK(x))
 #define _DIV_ROUND_UP_X(v, x) (((v) + _GEN_MASK(x)) >> (x))
 #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
-static uint64_t _pkt_calculate_video_buffer_size(media_packet_s *pkt)
+static size_t _pkt_calculate_video_buffer_size(media_packet_s *pkt)
 {
-	unsigned char x_chroma_shift = 0;
-	unsigned char y_chroma_shift = 0;
 	int size, w2, h2, size2;
 	int stride, stride2;
 	int width = 0;
 	int height = 0;
-	uint64_t buffersize = 0;
+	size_t buffersize = 0;
 
 	if (MEDIA_FORMAT_IS_VIDEO(pkt->format)) {
 		width = pkt->format->detail.video.width;
@@ -426,16 +408,8 @@ static uint64_t _pkt_calculate_video_buffer_size(media_packet_s *pkt)
 
 	case MEDIA_FORMAT_I420:
 	case MEDIA_FORMAT_YV12:
-		x_chroma_shift = 1;
-		y_chroma_shift = 1;
 		stride = _ROUND_UP_16(width);
-		h2 = _ROUND_UP_X(height, x_chroma_shift);
-		size = stride * h2;
-		w2 = _DIV_ROUND_UP_X(width, x_chroma_shift);
-		stride2 = _ROUND_UP_16(w2);
-		h2 = _DIV_ROUND_UP_X(height, y_chroma_shift);
-		size2 = stride2 * h2;
-		buffersize = (uint64_t)size + 2 * (uint64_t)size2;
+		buffersize = stride * height;
 		break;
 	case MEDIA_FORMAT_YUYV:
 	case MEDIA_FORMAT_UYVY:
@@ -443,20 +417,17 @@ static uint64_t _pkt_calculate_video_buffer_size(media_packet_s *pkt)
 	case MEDIA_FORMAT_RGB565:
 	case MEDIA_FORMAT_422P:
 		stride = _ROUND_UP_16(width * 2);
-		size = stride * height;
-		buffersize = (uint64_t)size;
+		buffersize = stride * height;
 		break;
 	case MEDIA_FORMAT_RGB888:
 		stride = _ROUND_UP_16(width * 3);
-		size = stride * height;
-		buffersize = (uint64_t)size;
+		buffersize = stride * height;
 		break;
 	case MEDIA_FORMAT_ARGB:
 	case MEDIA_FORMAT_RGBA:
 	case MEDIA_FORMAT_BGRA:
 		stride = width * 4;
-		size = stride * height;
-		buffersize = (uint64_t)size;
+		buffersize = stride * height;
 		break;
 	case MEDIA_FORMAT_NV12:
 	case MEDIA_FORMAT_NV12T:
@@ -474,23 +445,16 @@ static uint64_t _pkt_calculate_video_buffer_size(media_packet_s *pkt)
 	case MEDIA_FORMAT_MPEG2_HP:
 	case MEDIA_FORMAT_MPEG4_SP:
 	case MEDIA_FORMAT_MPEG4_ASP:
-		x_chroma_shift = 1;
-		y_chroma_shift = 1;
 		stride = _ROUND_UP_16(width);
-		h2 = _ROUND_UP_X(height, y_chroma_shift);
-		size = stride * h2;
-		w2 = 2 * _DIV_ROUND_UP_X(width, x_chroma_shift);
-		stride2 = _ROUND_UP_16(w2);
-		h2 = _DIV_ROUND_UP_X(height, y_chroma_shift);
-		size2 = stride2 * h2;
-		buffersize = (uint64_t)size + (uint64_t)size2;
+		buffersize = stride * height;
 		break;
 	default:
 		LOGE("Not supported format\n");
 		return 0;
 	}
 
-	LOGD("format 0x%x, buffersize %llu\n", pkt->format->mimetype, buffersize);
+	buffersize += BUFFER_PADDING_SIZE;
+	LOGD("format 0x%x, buffersize %d\n", pkt->format->mimetype, buffersize);
 
 	return buffersize;
 }
@@ -515,11 +479,11 @@ static uint64_t _pkt_calculate_video_buffer_size(media_packet_s *pkt)
 #define AMR_MAX_NCH                  (1)
 #define WMA_MAX_NCH                  (2)
 
-static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s *pkt)
+static size_t _pkt_calculate_audio_buffer_size(media_packet_s *pkt)
 {
 	int channel = 0;
 	int bit = 0;
-	uint64_t buffersize = 0;
+	size_t buffersize = 0;
 
 	if (MEDIA_FORMAT_IS_AUDIO(pkt->format)) {
 		channel = pkt->format->detail.audio.channel;
@@ -528,45 +492,46 @@ static uint64_t _pkt_calculate_audio_buffer_size(media_packet_s *pkt)
 
 	switch (pkt->format->mimetype) {
 	case MEDIA_FORMAT_PCM:
-		buffersize = (PCM_MAX_FRM_SIZE * PCM_MAX_NCH) * (uint64_t)(bit / 8);
+		buffersize = (PCM_MAX_FRM_SIZE * PCM_MAX_NCH) * (size_t)(bit / 8);
 		break;
 	case MEDIA_FORMAT_AAC_LC:
 	case MEDIA_FORMAT_AAC_HE:
 	case MEDIA_FORMAT_AAC_HE_PS:
 	case MEDIA_FORMAT_MP3:
-		buffersize = (MPEG_MAX_FRM_SIZE * MPEG_MIN_NCH) * (uint64_t)(2);	/* 2 = (16bit/8) */
+		buffersize = (MPEG_MAX_FRM_SIZE * MPEG_MIN_NCH) * 2;	/* 2 = (16bit/8) */
 		break;
 		/* TODO : extenstion format */
 	case MEDIA_FORMAT_AMR_NB:
 	case MEDIA_FORMAT_AMR_WB:
-		buffersize = (AMR_MAX_FRM_SIZE * AMR_MAX_NCH) * (uint64_t)(2);	/* 2 = (16bit/8) */
+		buffersize = (AMR_MAX_FRM_SIZE * AMR_MAX_NCH) * 2;	/* 2 = (16bit/8) */
 		break;
 	case MEDIA_FORMAT_VORBIS:
-		buffersize = (OGG_MAX_FRM_SIZE * MPEG_MIN_NCH) * (uint64_t)(2);	/* 2 = (16bit/8) */
+		buffersize = (OGG_MAX_FRM_SIZE * MPEG_MIN_NCH) * 2;	/* 2 = (16bit/8) */
 		break;
 	case MEDIA_FORMAT_FLAC:
-		buffersize = (FLAC_MAX_FRM_SIZE * MPEG_MIN_NCH) * (uint64_t)(2);	/* 2 = (16bit/8) */
+		buffersize = (FLAC_MAX_FRM_SIZE * MPEG_MIN_NCH) * 2;	/* 2 = (16bit/8) */
 		break;
 	case MEDIA_FORMAT_WMAV1:
 	case MEDIA_FORMAT_WMAV2:
 	case MEDIA_FORMAT_WMAPRO:
 	case MEDIA_FORMAT_WMALSL:
-		buffersize = (WMA_MAX_FRM_SIZE * WMA_MAX_NCH) * (uint64_t)(2);	/* 2 = (16bit/8) */
+		buffersize = (WMA_MAX_FRM_SIZE * WMA_MAX_NCH) * 2;	/* 2 = (16bit/8) */
 		break;
 	default:
 		LOGE("Not supported format\n");
 		return 0;
 	}
 
-	LOGD("format 0x%x, buffersize %llu\n", pkt->format->mimetype, buffersize);
+	buffersize += BUFFER_PADDING_SIZE;
+	LOGD("format 0x%x, buffersize %d\n", pkt->format->mimetype, buffersize);
 
 	return buffersize;
 }
 
 #define TXT_MAX_FRM_SIZE (2048)
-static uint64_t _pkt_calculate_text_buffer_size(media_packet_s *pkt)
+static size_t _pkt_calculate_text_buffer_size(media_packet_s *pkt)
 {
-	uint64_t buffersize = 0;
+	size_t buffersize = 0;
 	switch (pkt->format->mimetype) {
 	case MEDIA_FORMAT_TEXT_MP4:
 		buffersize = TXT_MAX_FRM_SIZE;
@@ -1413,10 +1378,13 @@ static uint32_t _convert_to_tbm_surface_format(media_format_mimetype_e format_ty
 	return tbm_format;
 }
 
-static void *_aligned_malloc_normal_buffer_type(uint64_t size, int alignment)
+static void *_aligned_malloc_normal_buffer_type(size_t size, int alignment)
 {
 	unsigned char *buffer_ptr;
 	unsigned char *temp_ptr;
+
+	if (size > (INT_MAX - 32) || !size)
+		return NULL;
 
 	if ((temp_ptr = (unsigned char *)malloc(size + alignment)) != NULL) {
 		buffer_ptr = (unsigned char *)((unsigned long int)(temp_ptr + alignment - 1) & (~(unsigned long int)(alignment - 1)));

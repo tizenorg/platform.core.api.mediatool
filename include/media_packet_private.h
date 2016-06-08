@@ -113,7 +113,7 @@ typedef struct _media_packet_s {
 	uint64_t pts;
 	uint64_t dts;
 	uint64_t duration;
-	uint64_t size;
+	size_t size;
 	void *data;
 	void *surface_data;
 	media_packet_finalize_cb finalizecb_func;
