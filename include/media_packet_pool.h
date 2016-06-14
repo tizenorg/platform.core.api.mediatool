@@ -142,22 +142,22 @@ int media_packet_pool_allocate(media_packet_pool_h pool);
 /**
  * @brief	Acquires a media packet from the media packet pool.
  * @details	It will take a media packet from the queue and block until media packet is released into the pool agaian.
- * 			When there are no media packets available, it will be increased to #max_buffers of given parameter.
+ *			When there are no media packets available, it will be increased to #max_buffers of given parameter.
  *
  * @since_tizen 3.0
  *
  * @param[in]	pool	The media packet pool handle
  * @param[out]	pkt		The media packet handle
  * @param[in]   timeout It indicates the millisecond-timeouts to block
- * 						while waiting for one of acquired packet to be released.
- * 						If the value of timeout is -1, the pool blocks indefinitely until media packet into the pool.
+ *				while waiting for one of acquired packet to be released.
+ *				If the value of timeout is -1, the pool blocks indefinitely until media packet into the pool.
  *
  * @return @c 0 on success,
  *         otherwise a negative error value
  * @retval #MEDIA_PACKET_ERROR_NONE Successful
  * @retval #MEDIA_PACKET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_PACKET_ERROR_INVALID_OPERATION The user does not allocate the pool.\n
- * 		The pool should be allocated with media_packet_pool_allocate() before acquiring media packet from the pool.
+ *			The pool should be allocated with media_packet_pool_allocate() before acquiring media packet from the pool.
  * @retval #MEDIA_PACKET_ERROR_NO_AVAILABLE_PACKET No available packet
  * @see media_pakcet_pool_set_size()
  * @see media_packet_pool_release_packet()

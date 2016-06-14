@@ -52,4 +52,4 @@
  *   \#include <media_format.h>
  */
 
-#endif // __TIZEN_MEDIA_TOOL_DOC_H__
+#endif /* __TIZEN_MEDIA_TOOL_DOC_H__ */
