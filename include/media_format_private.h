@@ -30,31 +30,22 @@ extern "C" {
 #define LOG_TAG "TIZEN_MEDIA_TOOL"
 
 #define MEDIA_FORMAT_CHECK_CONDITION(condition, error, msg)     \
-        if (condition) {} else \
-        { LOGE("[%s] %s(0x%08x)", __FUNCTION__, msg, error); return error; }; \
+	if (condition) {} else \
+	{ LOGE("[%s] %s(0x%08x)", __FUNCTION__, msg, error); return error; };
 
 #define MEDIA_FORMAT_CHECK_CONDITION_VOID(condition, msg)     \
-        if (condition) {} else \
-        { LOGE("[%s] %s", __FUNCTION__, msg); return; }; \
+	if (condition) {} else \
+	{ LOGE("[%s] %s", __FUNCTION__, msg); return; };
 
 
 #define MEDIA_FORMAT_INSTANCE_CHECK(media_format)   \
-        MEDIA_FORMAT_CHECK_CONDITION(media_format != NULL, MEDIA_FORMAT_ERROR_INVALID_PARAMETER, "MEDIA_FORMAT_ERROR_INVALID_PARAMETER")
+	MEDIA_FORMAT_CHECK_CONDITION(media_format != NULL, MEDIA_FORMAT_ERROR_INVALID_PARAMETER, "MEDIA_FORMAT_ERROR_INVALID_PARAMETER")
 
 #define MEDIA_FORMAT_INSTANCE_CHEC_VOID(media_format)   \
-        MEDIA_FORMAT_CHECK_CONDITION_VOID(media_format != NULL, "MEDIA_FORMAT_ERROR_INVALID_PARAMETER")
+	MEDIA_FORMAT_CHECK_CONDITION_VOID(media_format != NULL, "MEDIA_FORMAT_ERROR_INVALID_PARAMETER")
 
 #define MEDIA_FORMAT_NULL_ARG_CHECK(arg)      \
-        MEDIA_FORMAT_CHECK_CONDITION(arg != NULL, MEDIA_FORMAT_ERROR_INVALID_PARAMETER, "MEDIA_FORMAT_ERROR_INVALID_PARAMETER")
-
-#if 0
-#define atomic_int_inc(atomic) \
-  (__extension__({                                                          \
-    STATIC_ASSERT(sizeof *(atomic) == sizeof(int));                     \
-    (void) (0 ? *(atomic) ^ *(atomic) : 0);                                  \
-    (void) __sync_fetch_and_add((atomic), 1);                               \
-  }))
-#endif
+	MEDIA_FORMAT_CHECK_CONDITION(arg != NULL, MEDIA_FORMAT_ERROR_INVALID_PARAMETER, "MEDIA_FORMAT_ERROR_INVALID_PARAMETER")
 
 #define MEDIA_FORMAT_CAST(obj) ((media_format_s*)(obj))
 

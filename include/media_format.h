@@ -220,8 +220,8 @@ typedef enum {
 /**
  * @brief Creates a media format.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
- * @details    It creates media format. and reference count will be set to 1
-                    For destroying media_format_h handle, use media_format_unref().
+ * @details	It creates media format. and reference count will be set to 1
+			For destroying media_format_h handle, use media_format_unref().
  * @param[out] fmt allocated media_format_h
  *
  * @return @c 0 on success,

@@ -940,106 +940,101 @@ void _interpret_main_menu(char *cmd)
 	if (len == 1) {
 		if (strncmp(cmd, "a", 1) == 0)
 			_media_packet_create_alloc();
-		else if (strncmp(cmd, "d", 1) == 0) {
+		else if (strncmp(cmd, "d", 1) == 0)
 			_media_packet_destroy();
-		} else if (strncmp(cmd, "b", 1) == 0) {
+		else if (strncmp(cmd, "b", 1) == 0)
 			_media_packet_create_from_tbm_surface();
-		} else if (strncmp(cmd, "c", 1) == 0) {
+		else if (strncmp(cmd, "c", 1) == 0)
 			_media_packet_copy();
-		} else if (strncmp(cmd, "q", 1) == 0) {
+		else if (strncmp(cmd, "q", 1) == 0)
 			quit_program();
-		}
 	} else if (len == 2) {
 		if (strncmp(cmd, "aa", 2) == 0)
 			_media_packet_create();
-		else if (strncmp(cmd, "ab", 2) == 0) {
+		else if (strncmp(cmd, "ab", 2) == 0)
 			_media_packet_alloc();
-		} else if (strncmp(cmd, "iv", 2) == 0) {
+		else if (strncmp(cmd, "iv", 2) == 0)
 			_media_packet_is_video();
-		} else if (strncmp(cmd, "ia", 2) == 0) {
+		else if (strncmp(cmd, "ia", 2) == 0)
 			_media_packet_is_audio();
-		} else if (strncmp(cmd, "it", 2) == 0) {
+		else if (strncmp(cmd, "it", 2) == 0)
 			_media_packet_is_text();
-		} else if (strncmp(cmd, "ie", 2) == 0) {
+		else if (strncmp(cmd, "ie", 2) == 0)
 			_media_packet_is_encoded();
-		} else if (strncmp(cmd, "ir", 2) == 0) {
+		else if (strncmp(cmd, "ir", 2) == 0)
 			_media_packet_is_raw();
-		} else if (strncmp(cmd, "gd", 2) == 0) {
+		else if (strncmp(cmd, "gd", 2) == 0)
 			_media_packet_get_duration();
-		} else if (strncmp(cmd, "sd", 2) == 0) {
+		else if (strncmp(cmd, "sd", 2) == 0)
 			g_menu_state = CURRENT_STATUS_DURATION;
-		} else if (strncmp(cmd, "gf", 2) == 0) {
+		else if (strncmp(cmd, "gf", 2) == 0)
 			_media_packet_get_format();
-		} else if (strncmp(cmd, "gs", 2) == 0) {
+		else if (strncmp(cmd, "gs", 2) == 0)
 			_media_packet_get_buffer_size();
-		} else if (strncmp(cmd, "sf", 2) == 0) {
+		else if (strncmp(cmd, "sf", 2) == 0)
 			g_menu_state = CURRENT_STATUS_PACKET_SET_FORMAT;
-		} else if (strncmp(cmd, "se", 2) == 0) {
+		else if (strncmp(cmd, "se", 2) == 0)
 			_media_packet_set_extra();
-		} else if (strncmp(cmd, "ge", 2) == 0) {
+		else if (strncmp(cmd, "ge", 2) == 0)
 			_media_packet_get_extra();
-		} else if (strncmp(cmd, "ht", 2) == 0) {
+		else if (strncmp(cmd, "ht", 2) == 0)
 			_media_packet_has_tbm_surface_buffer();
-		} else if (strncmp(cmd, "cf", 2) == 0) {
+		else if (strncmp(cmd, "cf", 2) == 0)
 			_media_format_create();
-		}
-
 	} else if (len == 3) {
 		if (strncmp(cmd, "gbp", 3) == 0)
 			_media_packet_get_buffer_data_ptr();
-		else if (strncmp(cmd, "gts", 3) == 0) {
+		else if (strncmp(cmd, "gts", 3) == 0)
 			_media_packet_get_tbm_surface();
-		} else if (strncmp(cmd, "fgv", 3) == 0) {
+		else if (strncmp(cmd, "fgv", 3) == 0)
 			_media_format_get_video_info();
-		} else if (strncmp(cmd, "fga", 3) == 0) {
+		else if (strncmp(cmd, "fga", 3) == 0)
 			_media_format_get_audio_info();
-		} else if (strncmp(cmd, "fgt", 3) == 0) {
+		else if (strncmp(cmd, "fgt", 3) == 0)
 			_media_format_get_text_info();
-		} else if (strncmp(cmd, "svm", 3) == 0) {
+		else if (strncmp(cmd, "svm", 3) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_VIDEO_MIME;
-		} else if (strncmp(cmd, "svw", 3) == 0) {
+		else if (strncmp(cmd, "svw", 3) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_VIDEO_WIDTH;
-		} else if (strncmp(cmd, "svh", 3) == 0) {
+		else if (strncmp(cmd, "svh", 3) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_VIDEO_HEIGHT;
-		} else if (strncmp(cmd, "sam", 3) == 0) {
+		else if (strncmp(cmd, "sam", 3) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_MIME;
-		} else if (strncmp(cmd, "sac", 3) == 0) {
+		else if (strncmp(cmd, "sac", 3) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_CHANNEL;
-		} else if (strncmp(cmd, "sas", 3) == 0) {
+		else if (strncmp(cmd, "sas", 3) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_SAMPLERATE;
-		} else if (strncmp(cmd, "sab", 3) == 0) {
+		else if (strncmp(cmd, "sab", 3) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_BIT;
-		} else if (strncmp(cmd, "stm", 3) == 0) {
+		else if (strncmp(cmd, "stm", 3) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_TEXT_MIME;
-		} else if (strncmp(cmd, "stt", 3) == 0) {
+		else if (strncmp(cmd, "stt", 3) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_TEXT_TYPE;
-		} else if (strncmp(cmd, "gnp", 3) == 0) {
+		else if (strncmp(cmd, "gnp", 3) == 0)
 			_media_packet_get_number_of_video_planes();
-		} else if (strncmp(cmd, "gsw", 3) == 0) {
+		else if (strncmp(cmd, "gsw", 3) == 0)
 			_media_packet_get_video_stride_width();
-		} else if (strncmp(cmd, "gsh", 3) == 0) {
+		else if (strncmp(cmd, "gsh", 3) == 0)
 			_media_packet_get_video_stride_height();
-		} else if (strncmp(cmd, "gpp", 3) == 0) {
+		else if (strncmp(cmd, "gpp", 3) == 0)
 			_media_packet_get_video_plane_data_ptr();
-		} else if (strncmp(cmd, "scd", 3) == 0) {
+		else if (strncmp(cmd, "scd", 3) == 0)
 			_media_packet_set_codec_data();
-		} else if (strncmp(cmd, "gcd", 3) == 0) {
+		else if (strncmp(cmd, "gcd", 3) == 0)
 			_media_packet_get_codec_data();
-		}
 	} else if (len == 4) {
 		if (strncmp(cmd, "fraw", 4) == 0)
 			_create_format_raw();
-		else if (strncmp(cmd, "fes2", 4) == 0) {
+		else if (strncmp(cmd, "fes2", 4) == 0)
 			_create_format_320_240_es();
-		} else if (strncmp(cmd, "svab", 4) == 0) {
+		else if (strncmp(cmd, "svab", 4) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_VIDEO_AVG_BPS;
-		} else if (strncmp(cmd, "svmb", 4) == 0) {
+		else if (strncmp(cmd, "svmb", 4) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_VIDEO_MAX_BPS;
-		} else if (strncmp(cmd, "saab", 4) == 0) {
+		else if (strncmp(cmd, "saab", 4) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_AVG_BPS;
-		} else if (strncmp(cmd, "saat", 4) == 0) {
+		else if (strncmp(cmd, "saat", 4) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_TYPE;
-		}
 	} else if (len == 5) {
 		if (strncmp(cmd, "saaht", 5) == 0)
 			g_menu_state = CURRENT_STATUS_FORMAT_SET_AUDIO_AAC_HEADER_TYPE;

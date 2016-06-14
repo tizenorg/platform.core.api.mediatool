@@ -55,7 +55,7 @@ typedef enum {
 	MEDIA_PACKET_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER,				/**< Invalid parameter */
 	MEDIA_PACKET_ERROR_INVALID_OPERATION = TIZEN_ERROR_INVALID_OPERATION,				/**< Invalid operation */
 	MEDIA_PACKET_ERROR_FILE_NO_SPACE_ON_DEVICE = TIZEN_ERROR_FILE_NO_SPACE_ON_DEVICE,	/**< No space left on device */
-	MEDIA_PACKET_ERROR_NO_AVAILABLE_PACKET = TIZEN_ERROR_MEDIA_TOOL | 0x01,    			/**< No Available packet, (Since 3.0) */
+	MEDIA_PACKET_ERROR_NO_AVAILABLE_PACKET = TIZEN_ERROR_MEDIA_TOOL | 0x01,				/**< No Available packet, (Since 3.0) */
 } media_packet_error_e;
 
 /**

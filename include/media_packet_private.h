@@ -30,14 +30,14 @@ extern "C" {
 #define LOG_TAG "TIZEN_MEDIA_TOOL"
 
 #define MEDIA_PACKET_CHECK_CONDITION(condition, error, msg)     \
-                if (condition) {} else \
-                { LOGE("[%s] %s(0x%08x)", __FUNCTION__, msg, error); return error; }; \
+	if (condition) {} else \
+	{ LOGE("[%s] %s(0x%08x)", __FUNCTION__, msg, error); return error; };
 
 #define MEDIA_PACKET_INSTANCE_CHECK(media_packet)   \
-        MEDIA_PACKET_CHECK_CONDITION(media_packet != NULL, MEDIA_PACKET_ERROR_INVALID_PARAMETER, "MEDIA_PACKET_ERROR_INVALID_PARAMETER")
+	MEDIA_PACKET_CHECK_CONDITION(media_packet != NULL, MEDIA_PACKET_ERROR_INVALID_PARAMETER, "MEDIA_PACKET_ERROR_INVALID_PARAMETER")
 
 #define MEDIA_PACKET_NULL_ARG_CHECK(arg)      \
-        MEDIA_PACKET_CHECK_CONDITION(arg != NULL, MEDIA_PACKET_ERROR_INVALID_PARAMETER, "MEDIA_PACKET_ERROR_INVALID_PARAMETER")
+	MEDIA_PACKET_CHECK_CONDITION(arg != NULL, MEDIA_PACKET_ERROR_INVALID_PARAMETER, "MEDIA_PACKET_ERROR_INVALID_PARAMETER")
 
 /**
  * @brief Gets pts of media_packet_h
