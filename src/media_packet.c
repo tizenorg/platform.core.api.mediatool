@@ -247,13 +247,13 @@ int _pkt_alloc_buffer(media_packet_s *pkt)
 
 	if (pkt->type == MEDIA_BUFFER_TYPE_NORMAL) {
 		/* need to use format,width,height to get buffer size */
-		if (MEDIA_FORMAT_IS_VIDEO(pkt->format)) {
+		if (MEDIA_FORMAT_IS_VIDEO(pkt->format))
 			buffersize = _pkt_calculate_video_buffer_size(pkt);
-		} else if (MEDIA_FORMAT_IS_AUDIO(pkt->format)) {
+		else if (MEDIA_FORMAT_IS_AUDIO(pkt->format))
 			buffersize = _pkt_calculate_audio_buffer_size(pkt);
-		} else {
+		else
 			buffersize = _pkt_calculate_text_buffer_size(pkt);
-		}
+
 		/* 16bytes aligned malloc */
 		pkt->data = _aligned_malloc_normal_buffer_type(buffersize, 16);
 		if (!pkt->data)

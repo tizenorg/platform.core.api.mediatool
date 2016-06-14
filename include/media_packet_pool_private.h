@@ -32,14 +32,14 @@ extern "C" {
 #define MAX_PACKET	25
 
 #define MEDIA_PACKET_POOL_CHECK_CONDITION(condition, error, msg)     \
-                if (condition) {} else \
-                { LOGE("[%s] %s(0x%08x)", __FUNCTION__, msg, error); return error; }; \
+	if (condition) {} else \
+	{ LOGE("[%s] %s(0x%08x)", __FUNCTION__, msg, error); return error; }; \
 
 #define MEDIA_PACKET_POOL_INSTANCE_CHECK(pool)   \
-        MEDIA_PACKET_POOL_CHECK_CONDITION(pool != NULL, MEDIA_PACKET_ERROR_INVALID_PARAMETER, "MEDIA_PACKET_ERROR_INVALID_PARAMETER")
+	MEDIA_PACKET_POOL_CHECK_CONDITION(pool != NULL, MEDIA_PACKET_ERROR_INVALID_PARAMETER, "MEDIA_PACKET_ERROR_INVALID_PARAMETER")
 
 #define MEDIA_PACKET_POOL_NULL_ARG_CHECK(arg)      \
-        MEDIA_PACKET_POOL_CHECK_CONDITION(arg != NULL, MEDIA_PACKET_ERROR_INVALID_PARAMETER, "MEDIA_PACKET_ERROR_INVALID_PARAMETER")
+	MEDIA_PACKET_POOL_CHECK_CONDITION(arg != NULL, MEDIA_PACKET_ERROR_INVALID_PARAMETER, "MEDIA_PACKET_ERROR_INVALID_PARAMETER")
 /**
  * @brief  The Media Packet Pool structure.
  * @since_tizen 3.0
