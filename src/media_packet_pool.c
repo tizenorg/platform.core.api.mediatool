@@ -75,11 +75,6 @@ int media_packet_pool_set_media_format(media_packet_pool_h pool, media_format_h 
 
 	pool_handle = (media_packet_pool_s *)pool;
 
-	/* increase format reference count */
-	if (media_format_ref(fmt) != MEDIA_FORMAT_ERROR_NONE) {
-		LOGE("failed to increase ref count");
-		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
-	}
 	pool_handle->fmt_h = fmt;
 
 	return ret;
@@ -178,6 +173,13 @@ int media_packet_pool_allocate(media_packet_pool_h pool)
 		LOGD("[%d]%p queued", i, pool_handle->packet[i]);
 		pool_handle->curr_pool_size++;
 	}
+
+	/* increase format reference count */
+	if (media_format_ref(pool_handle->fmt_h) != MEDIA_FORMAT_ERROR_NONE) {
+		LOGE("failed to increase ref count");
+		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
+	}
+
 	g_atomic_int_set(&pool_handle->pool_allocated, 1);
 
 	return ret;
@@ -344,6 +346,14 @@ int media_packet_pool_deallocate(media_packet_pool_h pool)
 			return ret;
 		}
 	}
+
+	/* unreference media_format */
+	if (media_format_unref(pool_handle->fmt_h) != MEDIA_FORMAT_ERROR_NONE) {
+		LOGE("failed to decrease ref count");
+		g_mutex_unlock(&pool_handle->mutex);
+		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
+	}
+
 	g_mutex_unlock(&pool_handle->mutex);
 
 	return ret;
@@ -368,12 +378,6 @@ int media_packet_pool_destroy(media_packet_pool_h pool)
 
 	if (num_pkts > 0) {
 		LOGE("The packet pool needs to deallocate first ");
-		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
-	}
-
-	/* unreference media_format */
-	if (media_format_unref(pool_handle->fmt_h) != MEDIA_FORMAT_ERROR_NONE) {
-		LOGE("failed to decrease ref count");
 		return MEDIA_PACKET_ERROR_INVALID_OPERATION;
 	}
 
